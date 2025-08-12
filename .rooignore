@@ -1,0 +1,189 @@
+# ===============================================
+# SPARC METHODOLOGY - OPTIMAL .ROOIGNORE
+# ===============================================
+
+# ===== ENVIRONMENT & SECRETS =====
+# Never expose environment variables or secrets
+.env*
+.env.local
+.env.development
+.env.staging
+.env.production
+.env.test
+
+# Secret files (various formats)
+*secret*
+*secrets*
+*credentials*
+*password*
+*passwd*
+api-keys.*
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+service-account*.json
+firebase-adminsdk*.json
+
+# ===== BUILD ARTIFACTS =====
+# Generated files that can be rebuilt
+node_modules/
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+.vercel/
+.netlify/
+target/
+*.bundle.*
+*.chunk.*
+
+# ===== DATABASE & CACHE =====
+# Local database files and cache
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.cache
+.cache/
+.temp/
+*.tmp
+*.log
+logs/
+*.tsbuildinfo
+
+# ===== IDE & EDITOR FILES =====
+# Personal development environment settings
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ===== OPERATING SYSTEM =====
+# OS-generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ===== LOCAL CONFIGURATION =====
+# Personal and local config overrides
+config.local.*
+*.local.*
+*.private.*
+*-local.*
+*-private.*
+local-*
+private-*
+
+# ===== CLOUD & INFRASTRUCTURE =====
+# Cloud provider credentials
+.aws/credentials
+.aws/config
+.azure/
+.gcloud/
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+terraform.tfvars
+terraform.tfvars.json
+
+# Docker secrets
+.docker/config.json
+docker-compose.override.yml
+.env.docker
+
+# Kubernetes secrets
+*-secret.yaml
+*-secret.yml
+secret-*.yaml
+secret-*.yml
+
+# ===== CI/CD & DEPLOYMENT =====
+# Deployment keys and CI secrets
+deploy-key*
+deployment-key*
+.github/workflows/*secret*
+.gitlab-ci-local.yml
+.circleci/config.local.yml
+
+# ===== DEVELOPMENT TOOLS =====
+# Development and testing artifacts
+coverage/
+.nyc_output/
+.jest/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+venv/
+env/
+.venv/
+.env/
+
+# ===== MEMORY-BANK SENSITIVE DATA =====
+# Protect sensitive project context
+memory-bank/**/credentials.*
+memory-bank/**/secrets.*
+memory-bank/**/*secret*
+memory-bank/**/*password*
+memory-bank/**/*key*
+
+# ===== BACKUP & TEMPORARY FILES =====
+# Various backup and temporary patterns
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+*~
+.#*
+#*#
+
+# ===== PACKAGE MANAGERS =====
+# Package manager files with potential secrets
+.npmrc
+.yarnrc
+.yarnrc.yml
+pip.conf
+.pip/
+.pnpm-store/
+
+# ===== MOBILE DEVELOPMENT =====
+# Mobile app secrets and builds
+ios/
+android/
+*.jks
+*.keystore
+google-services.json
+GoogleService-Info.plist
+
+# ===== MONITORING & ANALYTICS =====
+# Analytics and monitoring configs
+.sentryclirc
+.env.sentry-build-plugin
+newrelic.ini
+datadog.yaml
+
+# ===== CUSTOM SPARC PATTERNS =====
+# Project-specific sensitive patterns
+# Add your project-specific sensitive files here:
+# custom-secrets/
+# project-credentials.*
+# client-data/
