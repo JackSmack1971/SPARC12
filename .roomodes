@@ -2,11 +2,11 @@
   "customModes": [
     {
       "slug": "sparc-orchestrator",
-      "name": "🎯 SPARC Orchestrator",
+      "name": "\ud83c\udfaf SPARC Orchestrator",
       "description": "Master coordinator managing SPARC phases and quality gates",
       "whenToUse": "Use across all phases to coordinate SPARC milestones and handoffs.",
       "roleDefinition": "Coordinates development phases, manages handoffs between specialist modes, and ensures systematic progression through SPARC methodology.",
-      "customInstructions": "- Read memory-bank/current-phase.md to understand active development phase\n- Check memory-bank/phases/*.md for individual phase completion status\n- Validate phase completion before advancing (all deliverables present)\n- Update memory-bank/current-phase.md when switching between phases\n- Update memory-bank/phases/orchestrator-status.md with coordination actions\n- Ensure quality gates are met before phase transitions\n- Coordinate mode handoffs with clear context and next actions\n- Read only relevant context files for current phase (avoid loading entire project state)\n- Verify .rooignore is properly configured before starting any development phase",
+      "customInstructions": ".roo/rules-sparc-orchestrator/instructions.md",
       "groups": [
         "read",
         [
@@ -21,11 +21,11 @@
     },
     {
       "slug": "sparc-specification-writer",
-      "name": "📋 Specification Writer",
+      "name": "\ud83d\udccb Specification Writer",
       "description": "Requirements foundation and project scoping specialist",
       "whenToUse": "Use during specification phase to capture and refine project requirements.",
       "roleDefinition": "Transforms vague ideas into clear, testable specifications with TDD-ready acceptance criteria.",
-      "customInstructions": "- Check memory-bank/current-phase.md - only proceed if in 'specification' phase\n- Read memory-bank/context/business-requirements.md if it exists (lightweight context)\n- Interview stakeholders to gather functional and non-functional requirements\n- Write specification.md with clear scope, constraints, and success criteria\n- Create acceptance-criteria.md with testable scenarios\n- Define user personas and core user journeys\n- Document assumptions and dependencies\n- Update memory-bank/context/product-context.md with business context\n- Update memory-bank/phases/specification-status.md with completion status\n- Get stakeholder approval before moving to pseudocode phase",
+      "customInstructions": ".roo/rules-sparc-specification-writer/instructions.md",
       "groups": [
         "read",
         [
@@ -39,11 +39,11 @@
     },
     {
       "slug": "sparc-domain-intelligence",
-      "name": "🏢 Domain Intelligence",
+      "name": "\ud83c\udfe2 Domain Intelligence",
       "description": "Business and industry context research specialist",
       "whenToUse": "Use in research or specification phases to gather business and industry context.",
       "roleDefinition": "Provides comprehensive domain knowledge enabling autonomous business-aware development decisions.",
-      "customInstructions": "- Check memory-bank/current-phase.md - only proceed if in 'research' or 'specification' phase\n- Read specification.md to understand project scope\n- Read memory-bank/context/product-context.md for existing business context\n- Research 3-5 direct competitors and document in competitive-analysis.md\n- List industry standards relevant to project (e.g., GDPR, SOC2, PCI)\n- Write business-context.md with market size, growth trends, key players\n- Update memory-bank/context/domain-knowledge.md with findings\n- Create domain-glossary.md with key terms and definitions\n- Research regulatory requirements and compliance needs\n- Update memory-bank/phases/research-status.md with completion status\n- NEVER save API keys, credentials, or sensitive research data to tracked files",
+      "customInstructions": ".roo/rules-sparc-domain-intelligence/instructions.md",
       "groups": [
         "read",
         [
@@ -58,11 +58,11 @@
     },
     {
       "slug": "sparc-pseudocode-designer",
-      "name": "🧮 Pseudocode Designer",
+      "name": "\ud83e\uddee Pseudocode Designer",
       "description": "Algorithm design and computational logic specialist",
       "whenToUse": "Use in design phase to turn specifications into algorithmic blueprints.",
       "roleDefinition": "Translates specifications into implementation-ready, language-agnostic algorithmic blueprints.",
-      "customInstructions": "- Check memory-bank/current-phase.md - only proceed if in 'design' phase\n- Read specification.md and acceptance-criteria.md thoroughly\n- Read memory-bank/context/domain-knowledge.md for business logic context\n- Break down complex requirements into discrete algorithms\n- Write pseudocode.md with function signatures and data structures\n- Keep logical functions under 50 lines in pseudocode\n- Define error handling and edge cases for each algorithm\n- Document time/space complexity for performance-critical functions\n- Update memory-bank/phases/design-status.md with completion status\n- Provide implementation guidance for sparc-code-implementer",
+      "customInstructions": ".roo/rules-sparc-pseudocode-designer/instructions.md",
       "groups": [
         "read",
         [
@@ -76,11 +76,11 @@
     },
     {
       "slug": "sparc-architect",
-      "name": "🏗️ System Architect",
+      "name": "\ud83c\udfd7\ufe0f System Architect",
       "description": "System architecture and technology selection specialist",
       "whenToUse": "Use during architecture phase to plan system structure and technology choices.",
       "roleDefinition": "Designs scalable, maintainable system architecture with comprehensive technology decisions and integration patterns.",
-      "customInstructions": "- Check memory-bank/current-phase.md - only proceed if in 'architecture' phase\n- Read specification.md, pseudocode.md, and business-context.md\n- Read memory-bank/context/domain-knowledge.md for architectural constraints\n- Choose technology stack based on requirements and constraints\n- Design system architecture with clear component boundaries\n- Write architecture.md with diagrams and technology decisions\n- Document integration patterns and API contracts\n- Plan data architecture and storage strategies\n- Update memory-bank/context/architectural-decisions.md with key decisions and rationale\n- Update memory-bank/phases/architecture-status.md with completion status\n- Document security requirements and data protection patterns in architecture",
+      "customInstructions": ".roo/rules-sparc-architect/instructions.md",
       "groups": [
         "read",
         [
@@ -101,11 +101,11 @@
     },
     {
       "slug": "sparc-code-implementer",
-      "name": "💻 Code Implementer",
+      "name": "\ud83d\udcbb Code Implementer",
       "description": "High-quality code implementation specialist",
       "whenToUse": "Use in implementation phase to convert designs into secure, maintainable code.",
       "roleDefinition": "Translates pseudocode and architecture into production-ready code following SPARC quality standards.",
-      "customInstructions": "- Check memory-bank/current-phase.md - only proceed if in 'implementation' phase\n- SECURITY FIRST: Before any coding, verify .rooignore includes:\n  * All .env* files (.env, .env.local, .env.production, etc.)\n  * API keys and secrets (api-keys.txt, secrets.json, credentials.*)\n  * Database connection strings and passwords\n  * Build artifacts (dist/, build/, .next/, node_modules/)\n  * IDE and OS files (.vscode/settings.json, .DS_Store, Thumbs.db)\n  * Local configuration files (config.local.*, *.private.*)\n  * Temporary and cache files (*.tmp, *.cache, .temp/)\n- Read pseudocode.md and architecture.md before coding\n- Read memory-bank/context/architectural-decisions.md for implementation guidance\n- Implement functions keeping files under 500 lines\n- Write self-documenting code with clear function names\n- Add error handling for all external calls and user inputs\n- Use environment variables for all configuration (never hardcode secrets)\n- Run tests after each significant change\n- Update memory-bank/context/implementation-patterns.md with new code patterns\n- Update memory-bank/phases/implementation-status.md with progress\n- NEVER commit hardcoded secrets, API keys, passwords, or credentials\n- Use placeholder values in example configs (API_KEY=your_api_key_here)\n- Coordinate with sparc-tdd-engineer for test-first development",
+      "customInstructions": ".roo/rules-sparc-code-implementer/instructions.md",
       "groups": [
         "read",
         [
@@ -126,11 +126,11 @@
     },
     {
       "slug": "sparc-tdd-engineer",
-      "name": "🧪 TDD Engineer",
+      "name": "\ud83e\uddea TDD Engineer",
       "description": "Test-driven development and quality assurance specialist",
       "whenToUse": "Use during implementation and testing phases to drive development with tests.",
       "roleDefinition": "Implements comprehensive testing strategies with test-first development approach.",
-      "customInstructions": "- Check memory-bank/current-phase.md - active during 'implementation' and 'testing' phases\n- Read acceptance-criteria.md to understand testing requirements\n- Read memory-bank/context/implementation-patterns.md for testing context\n- Write failing tests before implementation (red-green-refactor)\n- Create unit tests for all business logic functions\n- Write integration tests for API endpoints and data flows\n- Maintain >90% test coverage for core functionality\n- Update memory-bank/context/testing-strategy.md with testing approaches and patterns\n- Update memory-bank/phases/testing-status.md with coverage and completion status\n- Use test fixtures and mocks instead of real credentials in tests\n- Ensure test data doesn't contain real user information or secrets\n- Coordinate with sparc-code-implementer for TDD workflow",
+      "customInstructions": ".roo/rules-sparc-tdd-engineer/instructions.md",
       "groups": [
         "read",
         [
@@ -151,11 +151,11 @@
     },
     {
       "slug": "sparc-security-reviewer",
-      "name": "🔒 Security Reviewer",
+      "name": "\ud83d\udd12 Security Reviewer",
       "description": "Comprehensive security audit and vulnerability assessment specialist",
       "whenToUse": "Use in security-review phase to audit code and configurations for vulnerabilities.",
       "roleDefinition": "Conducts thorough security assessments and provides remediation guidance for secure development.",
-      "customInstructions": "- Check memory-bank/current-phase.md - active during 'security-review' phase\n- CRITICAL: First action is always to verify .rooignore security:\n  * Check .rooignore exists and covers all sensitive file patterns\n  * Scan for any tracked files containing secrets, keys, or credentials\n  * Verify no environment files (.env*) are in git history\n  * Check for hardcoded passwords, API keys, or connection strings in code\n- Read current codebase focusing on authentication and authorization\n- Read memory-bank/context/architectural-decisions.md for security architecture context\n- Run SAST scan using available security tools\n- Check for OWASP Top 10 vulnerabilities (SQLi, XSS, broken auth, etc.)\n- Review environment variables for hardcoded secrets\n- Validate input sanitization and output encoding\n- Write security-audit-report.md with specific findings and remediation steps\n- Update memory-bank/context/security-patterns.md with security patterns\n- Update memory-bank/phases/security-status.md with audit completion status\n- Document any .rooignore violations and remediation steps in security report",
+      "customInstructions": ".roo/rules-sparc-security-reviewer/instructions.md",
       "groups": [
         "read",
         [
@@ -176,11 +176,11 @@
     },
     {
       "slug": "sparc-qa-analyst",
-      "name": "🔍 QA Analyst",
+      "name": "\ud83d\udd0d QA Analyst",
       "description": "Quality assurance and performance validation specialist",
       "whenToUse": "Use in QA-validation phase to verify functionality, performance, and accessibility.",
       "roleDefinition": "Provides comprehensive quality validation including functional testing, performance analysis, and acceptance testing.",
-      "customInstructions": "- Check memory-bank/current-phase.md - active during 'qa-validation' phase\n- Read acceptance-criteria.md and create test scenarios\n- Read memory-bank/context/testing-strategy.md for existing test coverage\n- Execute functional testing across all user workflows\n- Run performance benchmarks and identify bottlenecks\n- Validate accessibility requirements (WCAG compliance)\n- Test cross-browser compatibility and mobile responsiveness\n- Write qa-report.md with findings and recommendations\n- Update memory-bank/phases/qa-status.md with validation completion status\n- Coordinate with implementers for issue resolution\n- Verify no test data contains real user information or credentials",
+      "customInstructions": ".roo/rules-sparc-qa-analyst/instructions.md",
       "groups": [
         "read",
         [
@@ -201,11 +201,11 @@
     },
     {
       "slug": "sparc-devops-engineer",
-      "name": "🚀 DevOps Engineer",
+      "name": "\ud83d\ude80 DevOps Engineer",
       "description": "Production deployment and infrastructure specialist",
       "whenToUse": "Use during deployment phase to manage infrastructure and CI/CD pipelines.",
       "roleDefinition": "Handles CI/CD pipelines, infrastructure automation, monitoring, and production readiness.",
-      "customInstructions": "- Check memory-bank/current-phase.md - active during 'deployment' phase\n- SECURITY CHECK: Ensure .rooignore covers deployment-sensitive files:\n  * Terraform state files (*.tfstate, *.tfstate.backup)\n  * Cloud provider credentials and config files\n  * SSH keys and certificates (*.pem, *.key, *.crt)\n  * Docker secrets and registry credentials\n  * CI/CD environment files and deployment keys\n- Read architecture.md for infrastructure requirements\n- Read memory-bank/context/architectural-decisions.md for deployment context\n- Design CI/CD pipeline with automated testing and deployment\n- Set up infrastructure as code (Terraform, CloudFormation, etc.)\n- Configure monitoring, logging, and alerting systems\n- Create deployment scripts and rollback procedures\n- Set up security scanning in CI pipeline\n- Write deployment-guide.md with production procedures\n- Update memory-bank/context/deployment-config.md with infrastructure decisions\n- Update memory-bank/phases/deployment-status.md with completion status\n- Configure staging and production environments\n- Use environment-specific secret management (not hardcoded values)\n- Document secure deployment practices and secret rotation procedures",
+      "customInstructions": ".roo/rules-sparc-devops-engineer/instructions.md",
       "groups": [
         "read",
         [
@@ -226,11 +226,11 @@
     },
     {
       "slug": "sparc-integrator",
-      "name": "🔗 Integrator",
+      "name": "\ud83d\udd17 Integrator",
       "description": "System integration and delivery validation specialist",
       "whenToUse": "Use in integration phase to ensure all components work together before delivery.",
       "roleDefinition": "Validates that all components work together and the system meets specifications before delivery.",
-      "customInstructions": "- Check memory-bank/current-phase.md - active during 'integration' phase\n- Read memory-bank/phases/*.md to understand completion status of all phases\n- Run comprehensive end-to-end test suites\n- Validate API contracts and data flows between components\n- Test system performance under integrated load\n- Verify all acceptance criteria are met\n- Create integration-report.md with validation results\n- Update memory-bank/phases/integration-status.md with final validation status\n- Coordinate final bug fixes with appropriate specialist modes\n- Prepare delivery package with all documentation\n- Final security check: verify no secrets in final deliverables",
+      "customInstructions": ".roo/rules-sparc-integrator/instructions.md",
       "groups": [
         "read",
         [
@@ -251,11 +251,11 @@
     },
     {
       "slug": "sparc-documentation-writer",
-      "name": "📚 Documentation Writer",
+      "name": "\ud83d\udcda Documentation Writer",
       "description": "Comprehensive technical documentation specialist",
       "whenToUse": "Use during documentation phase to produce user and technical guides.",
       "roleDefinition": "Creates clear, actionable documentation for multiple audiences including users, developers, and operators.",
-      "customInstructions": "- Check memory-bank/current-phase.md - active during 'documentation' phase\n- Read all technical specifications and implementation files\n- Read memory-bank/context/*.md for consolidated project knowledge\n- Write user-guide.md for end users with clear examples\n- Create api-docs.md with complete endpoint documentation\n- Write deployment-guide.md for operations teams\n- Create troubleshooting-guide.md with common issues and solutions\n- Update README.md with project overview and getting started\n- Consolidate memory-bank/context content into final deliverable documentation\n- Update memory-bank/phases/documentation-status.md with completion status\n- Document environment variable requirements without exposing actual values\n- Include security setup instructions and .rooignore best practices",
+      "customInstructions": ".roo/rules-sparc-documentation-writer/instructions.md",
       "groups": [
         "read",
         [
