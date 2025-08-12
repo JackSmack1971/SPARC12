@@ -23,7 +23,7 @@
         [
           "edit",
           {
-            "fileRegex": "^docs/.*\\\\.(md|mdx)$",
+            "fileRegex": "^docs/.*\\.(md|mdx)$",
             "description": "Documentation files"
           }
         ]
@@ -40,7 +40,7 @@
         [
           "edit",
           {
-            "fileRegex": "^docs/.*\\\\.(md|mdx)$",
+            "fileRegex": "^docs/.*\\.(md|mdx)$",
             "description": "Documentation files"
           }
         ],
@@ -58,7 +58,7 @@
         [
           "edit",
           {
-            "fileRegex": "^docs/.*\\\\.(md|mdx)$",
+            "fileRegex": "^docs/.*\\.(md|mdx)$",
             "description": "Documentation files"
           }
         ]
@@ -75,14 +75,14 @@
         [
           "edit",
           {
-            "fileRegex": "^docs/.*\\\\.(md|mdx)$",
+            "fileRegex": "^docs/.*\\.(md|mdx)$",
             "description": "Documentation files"
           }
         ],
         [
           "edit",
           {
-            "fileRegex": "^memory-bank/.*\\\\.(md|json)$",
+            "fileRegex": "^memory-bank/.*\\.(md|json)$",
             "description": "Memory bank files"
           }
         ]
@@ -99,14 +99,14 @@
         [
           "edit",
           {
-            "fileRegex": "^(apps/|packages/|src/).*\\\\.(ts|tsx|js|jsx|json)$",
+            "fileRegex": "^(apps/|packages/|src/).*\\.(ts|tsx|js|jsx|json)$",
             "description": "Source code files"
           }
         ],
         [
           "edit",
           {
-            "fileRegex": "^memory-bank/.*\\\\.(md|json)$",
+            "fileRegex": "^memory-bank/.*\\.(md|json)$",
             "description": "Memory bank files"
           }
         ]
@@ -123,14 +123,14 @@
         [
           "edit",
           {
-            "fileRegex": "^tests/.*\\\\.(ts|tsx|js|jsx)$",
+            "fileRegex": "^tests/.*\\.(ts|tsx|js|jsx)$",
             "description": "Test files"
           }
         ],
         [
           "edit",
           {
-            "fileRegex": "^docs/qa/.*\\\\.(md|mdx)$",
+            "fileRegex": "^docs/qa/.*\\.(md|mdx)$",
             "description": "QA documentation"
           }
         ]
@@ -147,14 +147,14 @@
         [
           "edit",
           {
-            "fileRegex": "^docs/security/.*\\\\.(md|mdx)$",
+            "fileRegex": "^docs/security/.*\\.(md|mdx)$",
             "description": "Security documentation"
           }
         ],
         [
           "edit",
           {
-            "fileRegex": "^tests/.*\\\\.(ts|tsx|js|jsx)$",
+            "fileRegex": "^tests/.*\\.(ts|tsx|js|jsx)$",
             "description": "Test files"
           }
         ]
@@ -171,14 +171,14 @@
         [
           "edit",
           {
-            "fileRegex": "^tests/.*\\\\.(ts|tsx|js|jsx)$",
+            "fileRegex": "^tests/.*\\.(ts|tsx|js|jsx)$",
             "description": "Test files"
           }
         ],
         [
           "edit",
           {
-            "fileRegex": "^docs/qa/.*\\\\.(md|mdx)$",
+            "fileRegex": "^docs/qa/.*\\.(md|mdx)$",
             "description": "QA documentation"
           }
         ]
@@ -195,14 +195,14 @@
         [
           "edit",
           {
-            "fileRegex": "^(\\\\.github/|deploy/|infrastructure/).*\\\\.(yml|yaml|tf|json)$",
+            "fileRegex": "^(\\.github/|deploy/|infrastructure/).*\\.(yml|yaml|tf|json)$",
             "description": "CI/CD and infrastructure configs"
           }
         ],
         [
           "edit",
           {
-            "fileRegex": "^docs/deployment/.*\\\\.(md|mdx)$",
+            "fileRegex": "^docs/deployment/.*\\.(md|mdx)$",
             "description": "Deployment documentation"
           }
         ]
@@ -219,14 +219,14 @@
         [
           "edit",
           {
-            "fileRegex": "^tests/.*\\\\.(ts|tsx|js|jsx)$",
+            "fileRegex": "^tests/.*\\.(ts|tsx|js|jsx)$",
             "description": "Test files"
           }
         ],
         [
           "edit",
           {
-            "fileRegex": "^docs/.*\\\\.(md|mdx)$",
+            "fileRegex": "^docs/.*\\.(md|mdx)$",
             "description": "Documentation files"
           }
         ]
@@ -243,7 +243,7 @@
         [
           "edit",
           {
-            "fileRegex": "^docs/(?!security/).*\\\\.(md|mdx)$",
+            "fileRegex": "^docs/(?!security/).*\\.(md|mdx)$",
             "description": "General documentation"
           }
         ]
