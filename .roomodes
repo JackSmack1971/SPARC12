@@ -8,7 +8,13 @@
       "customInstructions": "- Read memory-bank/current-phase.md to understand active development phase\n- Check memory-bank/phases/*.md for individual phase completion status\n- Validate phase completion before advancing (all deliverables present)\n- Update memory-bank/current-phase.md when switching between phases\n- Update memory-bank/phases/orchestrator-status.md with coordination actions\n- Ensure quality gates are met before phase transitions\n- Coordinate mode handoffs with clear context and next actions\n- Read only relevant context files for current phase (avoid loading entire project state)\n- Verify .rooignore is properly configured before starting any development phase",
       "groups": [
         "read",
-        "edit",
+        [
+          "edit",
+          {
+            "fileRegex": "^memory-bank/.*\\.(md|json)$",
+            "description": "Memory-bank tracking only"
+          }
+        ],
         "mcp"
       ]
     },
