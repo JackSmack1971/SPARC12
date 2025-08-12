@@ -6,7 +6,13 @@
       "description": "Master coordinator managing SPARC phases and quality gates",
       "whenToUse": "Use across all phases to coordinate SPARC milestones and handoffs.",
       "roleDefinition": "Coordinates development phases, manages handoffs between specialist modes, and ensures systematic progression through SPARC methodology.",
-      "customInstructions": ".roo/rules-sparc-orchestrator/instructions.md",
+      "customInstructions": [
+        ".roo/rules-sparc-orchestrator/instructions.md",
+        ".roo/rules-sparc-orchestrator/01-phase-gates.md",
+        ".roo/rules-sparc-orchestrator/02-handoff-protocols.md",
+        ".roo/rules-sparc-orchestrator/03-quality-validation.md",
+        ".roo/rules-sparc-orchestrator/04-emergency-procedures.md"
+      ],
       "groups": [
         "read",
         [

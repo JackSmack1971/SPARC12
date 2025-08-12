@@ -9,3 +9,9 @@
 - Coordinate mode handoffs with clear context and next actions
 - Read only relevant context files for current phase (avoid loading entire project state)
 - Verify .rooignore is properly configured before starting any development phase
+
+## Framework References
+- [Phase Gates](01-phase-gates.md)
+- [Handoff Protocols](02-handoff-protocols.md)
+- [Quality Validation](03-quality-validation.md)
+- [Emergency Procedures](04-emergency-procedures.md)
