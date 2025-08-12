@@ -1,0 +1,31 @@
+name: SPARC Quality Checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run quality checks
+        run: ./.tools/quality-check.sh
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Bandit security scan
+        run: |
+          pip install bandit
+          bandit -r .
+
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run markdown lint
+        run: |
+          npm install -g markdownlint-cli
+          markdownlint '**/*.md' --ignore AGENTS.md
