@@ -62,6 +62,10 @@ class DatabaseQueryError(Exception):
     """Raised when a database query operation fails."""
 
 
+class DatabaseConnectionError(Exception):
+    """Raised when establishing a database connection fails."""
+
+
 def _current_timestamp() -> str:
     """Return the current UTC timestamp as ISO8601 string."""
     return datetime.datetime.utcnow().isoformat() + "Z"
@@ -97,11 +101,47 @@ class ContextPortalSPARCServer:
             self.workspace_dir, "context_portal", "context.db"
         )
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
-        self._conn = sqlite3.connect(self.db_path)
-        self._conn.row_factory = sqlite3.Row
-        self._ensure_tables()
-        # Guarantee that all SPARC phases exist
-        self._initialize_phases()
+        self._conn: Optional[sqlite3.Connection] = None
+        self._connect()
+
+    def _connect(self) -> None:
+        """Establish the SQLite connection with safety checks."""
+        if self._conn:
+            return
+        try:
+            self._conn = sqlite3.connect(self.db_path)
+            self._conn.row_factory = sqlite3.Row
+            self._conn.execute("PRAGMA foreign_keys = ON")
+            self._ensure_tables()
+            self._initialize_phases()
+        except sqlite3.Error as exc:
+            if self._conn:
+                try:
+                    self._conn.close()
+                except sqlite3.Error:
+                    pass
+                finally:
+                    self._conn = None
+            raise DatabaseConnectionError(str(exc)) from exc
+
+    def __enter__(self) -> "ContextPortalSPARCServer":
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.close()
+
+    def close(self) -> None:
+        """Close the database connection safely."""
+        if self._conn:
+            try:
+                self._conn.close()
+            except sqlite3.Error:
+                pass
+            finally:
+                self._conn = None
+
+    def __del__(self) -> None:
+        self.close()
 
     def _ensure_tables(self) -> None:
         """Create tables if they don't exist."""
@@ -769,9 +809,6 @@ class ContextPortalSPARCServer:
             out_file = os.path.join(ctx_dir, f"{category}.json")
             with open(out_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
-
-    def close(self) -> None:
-        self._conn.close()
 
 
 if __name__ == "__main__":
