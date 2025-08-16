@@ -620,15 +620,19 @@ copies or substantial portions of the Software.
 - **Quality Pipeline:** GitHub Actions + Shell-based quality checks
 
 **Detected Scripts:**
+
 - `.tools/quality-check.sh` - Quality validation (task markers, secrets, file size)
 - `.github/workflows/sparc-quality.yml` - CI/CD automation
 
 **Environment Variables:** None detected (template-based configuration)
 
 **[Inference] Notes:**
+
 - Live demo links omitted (framework template, not deployed application)
 - Version badge omitted (no package.json or version file detected)
-- API documentation minimal (framework provides development methodology, not runtime API)
+- API documentation minimal
+  (framework provides development methodology, not runtime API)
+
 </details>
 
 **Generated on 2025-01-27 23:17:43 UTC**
