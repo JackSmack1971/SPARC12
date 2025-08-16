@@ -59,8 +59,7 @@
       "customInstructions": "Write architecture.md with diagrams and technology decisions. Document integration patterns and API contracts. Plan data architecture and storage strategies. Document security requirements and data protection patterns in architecture.",
       "groups": [
         "read",
-        ["edit", {"fileRegex": "^docs/.*\\.(md|mdx)$", "description": "Documentation files"}],
-        ["edit", {"fileRegex": "^memory-bank/.*\\.(md|json)$", "description": "Memory bank files"}]
+        ["edit", {"fileRegex": "^(docs|memory-bank)/.*\\.(md|mdx|json)$", "description": "Documentation and memory bank files"}]
       ]
     },
     {
@@ -72,8 +71,7 @@
       "customInstructions": "Implement functions keeping files under 500 lines. Write self-documenting code with clear function names. Add error handling for all external calls and user inputs. Use environment variables for all configuration. NEVER commit hardcoded secrets, API keys, passwords, or credentials. Use placeholder values in example configs.",
       "groups": [
         "read",
-        ["edit", {"fileRegex": "^(apps/|packages/|src/).*\\.(ts|tsx|js|jsx|json)$", "description": "Source code files"}],
-        ["edit", {"fileRegex": "^memory-bank/.*\\.(md|json)$", "description": "Memory bank files"}]
+        ["edit", {"fileRegex": "^((apps|packages|src)/.*\\.(ts|tsx|js|jsx|json)|memory-bank/.*\\.(md|json))$", "description": "Source code and memory bank files"}]
       ]
     },
     {
@@ -85,8 +83,7 @@
       "customInstructions": "Write integration tests for API endpoints and data flows. Maintain >90% test coverage for core functionality. Use test fixtures and mocks instead of real credentials in tests. Ensure test data doesn't contain real user information or secrets.",
       "groups": [
         "read",
-        ["edit", {"fileRegex": "^tests/.*\\.(ts|tsx|js|jsx)$", "description": "Test files"}],
-        ["edit", {"fileRegex": "^docs/qa/.*\\.(md|mdx)$", "description": "QA documentation"}]
+        ["edit", {"fileRegex": "^(tests/.*\\.(ts|tsx|js|jsx)|docs/qa/.*\\.(md|mdx))$", "description": "Test and QA documentation files"}]
       ]
     },
     {
@@ -98,8 +95,7 @@
       "customInstructions": "Run SAST scan using available security tools. Check for OWASP Top 10 vulnerabilities. Review environment variables for hardcoded secrets. Validate input sanitization and output encoding. Document any .rooignore violations and remediation steps in security report.",
       "groups": [
         "read",
-        ["edit", {"fileRegex": "^docs/security/.*\\.(md|mdx)$", "description": "Security documentation"}],
-        ["edit", {"fileRegex": "^tests/.*\\.(ts|tsx|js|jsx)$", "description": "Test files"}]
+        ["edit", {"fileRegex": "^(docs/security/.*\\.(md|mdx)|tests/.*\\.(ts|tsx|js|jsx))$", "description": "Security documentation and test files"}]
       ]
     },
     {
@@ -111,8 +107,7 @@
       "customInstructions": "Run performance benchmarks and identify bottlenecks. Validate accessibility requirements (WCAG compliance). Test cross-browser compatibility and mobile responsiveness. Verify no test data contains real user information or credentials.",
       "groups": [
         "read",
-        ["edit", {"fileRegex": "^tests/.*\\.(ts|tsx|js|jsx)$", "description": "Test files"}],
-        ["edit", {"fileRegex": "^docs/qa/.*\\.(md|mdx)$", "description": "QA documentation"}]
+        ["edit", {"fileRegex": "^(tests/.*\\.(ts|tsx|js|jsx)|docs/qa/.*\\.(md|mdx))$", "description": "Test and QA documentation files"}]
       ]
     },
     {
@@ -124,8 +119,7 @@
       "customInstructions": "Design CI/CD pipeline with automated testing and deployment. Set up infrastructure as code. Configure monitoring, logging, and alerting systems. Use environment-specific secret management (not hardcoded values). Document secure deployment practices and secret rotation procedures.",
       "groups": [
         "read",
-        ["edit", {"fileRegex": "^(\\.github/|deploy/|infrastructure/).*\\.(yml|yaml|tf|json)$", "description": "CI/CD and infrastructure configs"}],
-        ["edit", {"fileRegex": "^docs/deployment/.*\\.(md|mdx)$", "description": "Deployment documentation"}]
+        ["edit", {"fileRegex": "^((\\.github|deploy|infrastructure)/.*\\.(yml|yaml|tf|json)|docs/deployment/.*\\.(md|mdx))$", "description": "Infrastructure and deployment files"}]
       ]
     },
     {
@@ -137,8 +131,7 @@
       "customInstructions": "Validate API contracts and data flows between components. Test system performance under integrated load. Verify all acceptance criteria are met. Final security check: verify no secrets in final deliverables.",
       "groups": [
         "read",
-        ["edit", {"fileRegex": "^tests/.*\\.(ts|tsx|js|jsx)$", "description": "Test files"}],
-        ["edit", {"fileRegex": "^docs/.*\\.(md|mdx)$", "description": "Documentation files"}]
+        ["edit", {"fileRegex": "^(tests/.*\\.(ts|tsx|js|jsx)|docs/.*\\.(md|mdx))$", "description": "Test and documentation files"}]
       ]
     },
     {
