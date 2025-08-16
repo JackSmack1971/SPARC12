@@ -1,3 +1,4 @@
 # Testing Phase Status
 
-TODO: Summarize testing efforts and results.
+- Added unit tests for embedding updates and custom data search.
+- Executed `pytest -q`; all tests passed.

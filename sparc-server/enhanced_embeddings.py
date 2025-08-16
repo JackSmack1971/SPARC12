@@ -19,6 +19,14 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
+
+class EmbeddingUpdateError(Exception):
+    """Raised when updating embeddings fails."""
+
+
+class SemanticSearchError(Exception):
+    """Raised when semantic search fails."""
+
 # Optional imports - gracefully degrade if not available
 try:
     from sentence_transformers import SentenceTransformer
@@ -236,84 +244,67 @@ class EnhancedSPARCSearch:
         
         return None
     
-    def update_embeddings(self, item_type: str, item_ids: Optional[List[int]] = None):
+    def update_embeddings(self, item_type: str, item_ids: Optional[List[int]] = None) -> None:
         """Update embeddings for specific items or all items of a type."""
-        c = self.conn.cursor()
-        
-        # Get items to update
-        if item_ids:
-            placeholders = ",".join("?" * len(item_ids))
-            if item_type == "decisions":
-                rows = c.execute(
-                    f"SELECT id FROM decisions WHERE id IN ({placeholders})", 
-                    item_ids
-                ).fetchall()
-            elif item_type == "progress":
-                rows = c.execute(
-                    f"SELECT id FROM progress WHERE id IN ({placeholders})", 
-                    item_ids
-                ).fetchall()
-            elif item_type == "system_patterns":
-                rows = c.execute(
-                    f"SELECT id FROM system_patterns WHERE id IN ({placeholders})", 
-                    item_ids
-                ).fetchall()
-            elif item_type == "custom_data":
-                rows = c.execute(
-                    f"SELECT id FROM custom_data WHERE id IN ({placeholders})", 
-                    item_ids
-                ).fetchall()
+        try:
+            c = self.conn.cursor()
+
+            # Get items to update
+            if item_ids:
+                ids_to_update = item_ids
             else:
+                if item_type == "decisions":
+                    ids_to_update = [row["id"] for row in c.execute("SELECT id FROM decisions").fetchall()]
+                elif item_type == "progress":
+                    ids_to_update = [row["id"] for row in c.execute("SELECT id FROM progress").fetchall()]
+                elif item_type == "system_patterns":
+                    ids_to_update = [row["id"] for row in c.execute("SELECT id FROM system_patterns").fetchall()]
+                elif item_type == "custom_data":
+                    ids_to_update = [row["id"] for row in c.execute("SELECT id FROM custom_data").fetchall()]
+                else:
+                    return
+
+            # Collect texts and IDs
+            texts: List[str] = []
+            ids: List[int] = []
+            for item_id in ids_to_update:
+                text_content = self._get_item_text_content(item_type, item_id)
+                if text_content:
+                    texts.append(text_content)
+                    ids.append(item_id)
+
+            if not texts:
                 return
-        else:
-            # Update all items of this type
-            if item_type == "decisions":
-                rows = c.execute("SELECT id FROM decisions").fetchall()
-            elif item_type == "progress":
-                rows = c.execute("SELECT id FROM progress").fetchall()
-            elif item_type == "system_patterns":
-                rows = c.execute("SELECT id FROM system_patterns").fetchall()
-            elif item_type == "custom_data":
-                rows = c.execute("SELECT id FROM custom_data").fetchall()
-            else:
-                return
-        
-        # Collect texts and IDs
-        texts = []
-        ids = []
-        for row in rows:
-            text_content = self._get_item_text_content(item_type, row["id"])
-            if text_content:
-                texts.append(text_content)
-                ids.append(row["id"])
-        
-        if not texts:
-            return
-        
-        # Generate embeddings
-        embeddings = self.provider.encode(texts)
-        
-        # Store embeddings
-        from datetime import datetime
-        timestamp = datetime.utcnow().isoformat() + "Z"
-        
-        for i, (item_id, text_content) in enumerate(zip(ids, texts)):
-            embedding_blob = embeddings[i].tobytes()
-            
-            c.execute("""
-                INSERT OR REPLACE INTO item_embeddings 
-                (item_type, item_id, embedding, text_content, embedding_model, created_at)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                item_type, 
-                item_id, 
-                embedding_blob, 
-                text_content, 
-                self.provider.name, 
-                timestamp
-            ))
-        
-        self.conn.commit()
+
+            # Generate embeddings
+            embeddings = self.provider.encode(texts)
+
+            # Store embeddings
+            from datetime import datetime
+            timestamp = datetime.utcnow().isoformat() + "Z"
+
+            for i, (item_id, text_content) in enumerate(zip(ids, texts)):
+                embedding_blob = embeddings[i].tobytes()
+                c.execute(
+                    """
+                    INSERT OR REPLACE INTO item_embeddings
+                    (item_type, item_id, embedding, text_content, embedding_model, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        item_type,
+                        item_id,
+                        embedding_blob,
+                        text_content,
+                        self.provider.name,
+                        timestamp,
+                    ),
+                )
+
+            self.conn.commit()
+        except sqlite3.DatabaseError as exc:
+            self.conn.rollback()
+            raise EmbeddingUpdateError("Failed to update embeddings") from exc
     
     def semantic_search(
         self, 
@@ -323,59 +314,55 @@ class EnhancedSPARCSearch:
         min_similarity: float = 0.1
     ) -> List[SearchResult]:
         """Perform enhanced semantic search using stored embeddings."""
-        
-        # Generate query embedding
-        query_embedding = self.provider.encode([query])[0]
-        
-        # Retrieve stored embeddings
-        c = self.conn.cursor()
-        
-        conditions = ["embedding_model = ?"]
-        params = [self.provider.name]
-        
-        if filter_item_types:
-            placeholders = ",".join("?" * len(filter_item_types))
-            conditions.append(f"item_type IN ({placeholders})")
-            params.extend(filter_item_types)
-        
-        query_sql = f"""
-            SELECT item_type, item_id, embedding, text_content
-            FROM item_embeddings 
-            WHERE {" AND ".join(conditions)}
-        """
-        
-        rows = c.execute(query_sql, params).fetchall()
-        
-        # Calculate similarities
-        results = []
-        for row in rows:
-            stored_embedding = np.frombuffer(row["embedding"], dtype=np.float64)
-            
-            # Reshape if needed
-            if stored_embedding.shape != query_embedding.shape:
-                continue
-            
-            # Calculate cosine similarity
-            similarity = np.dot(query_embedding, stored_embedding) / (
-                np.linalg.norm(query_embedding) * np.linalg.norm(stored_embedding)
+        try:
+            # Generate query embedding
+            query_embedding = self.provider.encode([query])[0]
+
+            # Retrieve stored embeddings
+            c = self.conn.cursor()
+            params = [self.provider.name]
+            query_sql = (
+                "SELECT item_type, item_id, embedding, text_content "
+                "FROM item_embeddings WHERE embedding_model = ?"
             )
-            
-            if similarity >= min_similarity:
-                # Get full item data
-                item_data = self._get_full_item_data(row["item_type"], row["item_id"])
-                if item_data:
-                    results.append(SearchResult(
-                        item_id=row["item_id"],
-                        item_type=row["item_type"],
-                        content=item_data,
-                        similarity_score=float(similarity),
-                        phase_name=item_data.get("phase_name"),
-                        timestamp=item_data.get("timestamp")
-                    ))
-        
-        # Sort by similarity and return top_k
-        results.sort(key=lambda x: x.similarity_score, reverse=True)
-        return results[:top_k]
+            rows = c.execute(query_sql, params).fetchall()
+            if filter_item_types:
+                rows = [r for r in rows if r["item_type"] in filter_item_types]
+
+            # Calculate similarities
+            results: List[SearchResult] = []
+            for row in rows:
+                stored_embedding = np.frombuffer(row["embedding"], dtype=np.float64)
+
+                # Reshape if needed
+                if stored_embedding.shape != query_embedding.shape:
+                    continue
+
+                # Calculate cosine similarity
+                similarity = np.dot(query_embedding, stored_embedding) / (
+                    np.linalg.norm(query_embedding) * np.linalg.norm(stored_embedding)
+                )
+
+                if similarity >= min_similarity:
+                    # Get full item data
+                    item_data = self._get_full_item_data(row["item_type"], row["item_id"])
+                    if item_data:
+                        results.append(
+                            SearchResult(
+                                item_id=row["item_id"],
+                                item_type=row["item_type"],
+                                content=item_data,
+                                similarity_score=float(similarity),
+                                phase_name=item_data.get("phase_name"),
+                                timestamp=item_data.get("timestamp"),
+                            )
+                        )
+
+            # Sort by similarity and return top_k
+            results.sort(key=lambda x: x.similarity_score, reverse=True)
+            return results[:top_k]
+        except sqlite3.DatabaseError as exc:
+            raise SemanticSearchError("Failed to execute semantic search") from exc
     
     def _get_full_item_data(self, item_type: str, item_id: int) -> Optional[Dict[str, Any]]:
         """Retrieve full item data from the database."""

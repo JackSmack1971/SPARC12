@@ -1,3 +1,4 @@
 # Security Patterns
 
-TODO: Capture security best practices and patterns.
+- Replaced dynamic SQL string formatting with parameterized queries.
+- Wrapped database operations in try/except blocks with custom exceptions.
