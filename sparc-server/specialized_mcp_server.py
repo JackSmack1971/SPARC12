@@ -54,6 +54,14 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 
+class DatabaseUpdateError(Exception):
+    """Raised when a database update operation fails."""
+
+
+class DatabaseQueryError(Exception):
+    """Raised when a database query operation fails."""
+
+
 def _current_timestamp() -> str:
     """Return the current UTC timestamp as ISO8601 string."""
     return datetime.datetime.utcnow().isoformat() + "Z"
@@ -355,25 +363,31 @@ class ContextPortalSPARCServer:
         parent_id: Optional[int] = None,
     ) -> None:
         c = self._conn.cursor()
-        updates: List[str] = []
-        params: List[Any] = []
-        if status is not None:
-            updates.append("status = ?")
-            params.append(status)
-        if description is not None:
-            updates.append("description = ?")
-            params.append(description)
-        if parent_id is not None:
-            updates.append("parent_id = ?")
-            params.append(parent_id)
-        if not updates:
-            return
-        params.append(progress_id)
-        c.execute(
-            f"UPDATE progress SET {', '.join(updates)} WHERE id = ?",
-            params,
-        )
-        self._conn.commit()
+        updated = False
+        try:
+            if status is not None:
+                c.execute(
+                    "UPDATE progress SET status = ? WHERE id = ?",
+                    (status, progress_id),
+                )
+                updated = True
+            if description is not None:
+                c.execute(
+                    "UPDATE progress SET description = ? WHERE id = ?",
+                    (description, progress_id),
+                )
+                updated = True
+            if parent_id is not None:
+                c.execute(
+                    "UPDATE progress SET parent_id = ? WHERE id = ?",
+                    (parent_id, progress_id),
+                )
+                updated = True
+            if updated:
+                self._conn.commit()
+        except sqlite3.DatabaseError as exc:
+            self._conn.rollback()
+            raise DatabaseUpdateError("Failed to update progress") from exc
 
     def delete_progress_by_id(self, progress_id: int) -> None:
         c = self._conn.cursor()
@@ -467,16 +481,18 @@ class ContextPortalSPARCServer:
     ) -> List[Dict[str, Any]]:
         pattern = f"%{query_term}%"
         c = self._conn.cursor()
-        conditions = ["value LIKE ?"]
-        params: List[Any] = [pattern]
-        if category_filter:
-            conditions.append("category = ?")
-            params.append(category_filter)
-        query = "SELECT * FROM custom_data WHERE " + " AND ".join(conditions)
-        query += " ORDER BY id DESC LIMIT ?"
-        params.append(limit)
-        rows = c.execute(query, params).fetchall()
-        return [dict(row) for row in rows]
+        try:
+            query = "SELECT * FROM custom_data WHERE value LIKE ?"
+            params: List[Any] = [pattern]
+            if category_filter:
+                query += " AND category = ?"
+                params.append(category_filter)
+            query += " ORDER BY id DESC LIMIT ?"
+            params.append(limit)
+            rows = c.execute(query, params).fetchall()
+            return [dict(row) for row in rows]
+        except sqlite3.DatabaseError as exc:
+            raise DatabaseQueryError("Failed to search custom data") from exc
 
     # Phase management
     def get_current_phase(self) -> str:
