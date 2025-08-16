@@ -253,21 +253,25 @@ Add to your MCP configuration:
 With this setup, your SPARC modes become incredibly powerful:
 
 ### ✨ **Context Awareness**
+
 - Every mode can access the full project history
 - Intelligent suggestions based on similar past decisions
 - Cross-phase knowledge transfer
 
 ### 🔍 **Semantic Search**
+
 - Find relevant patterns and decisions using natural language
 - Discover connections between different project aspects
 - Learn from previous project experiences
 
 ### 📈 **Progressive Intelligence**
+
 - System gets smarter as you use it more
 - Builds up organizational knowledge over time
 - Shares learnings across projects
 
 ### 🚀 **Enhanced Productivity**
+
 - Modes provide context-aware suggestions
 - Reduce time spent researching solutions
 - Avoid repeating past mistakes
@@ -280,4 +284,5 @@ With this setup, your SPARC modes become incredibly powerful:
 4. **Customize**: Create specialized modes for your specific workflow
 5. **Scale**: Add cross-project knowledge sharing
 
-This enhanced SPARC12 framework transforms your development process from manual documentation to intelligent, context-aware assistance!
+This enhanced SPARC12 framework transforms your development process from manual
+documentation to intelligent, context-aware assistance!
