@@ -609,10 +609,10 @@ copies or substantial portions of the Software.
 
 ---
 
-<details>
-<summary><strong>Analysis Notes</strong></summary>
+### Analysis Notes
 
 **Generated Analysis:**
+
 - **Repository Type:** Development Framework Template
 - **Primary Technology:** Roo Code Custom Modes with Shell/Markdown
 - **Architecture Pattern:** Phase-based development with AI mode specialization
@@ -632,8 +632,6 @@ copies or substantial portions of the Software.
 - Version badge omitted (no package.json or version file detected)
 - API documentation minimal
   (framework provides development methodology, not runtime API)
-
-</details>
 
 **Generated on 2025-01-27 23:17:43 UTC**
 
