@@ -1,10 +1,11 @@
 # SPARC12 Enhanced Setup Guide
 
-Complete setup guide for integrating your specialized SPARC Context Portal with Roo Code.
+Complete setup guide for integrating your specialized SPARC Context Portal with
+Roo Code.
 
 ## 📁 Project Structure
 
-```
+```text
 your-project/
 ├── .roo/
 │   ├── mcp.json                    # MCP server configuration
@@ -76,7 +77,8 @@ Save the enhanced `.roomodes` configuration in your project root.
 
 ```bash
 # Initialize with existing memory bank (if you have one)
-python sparc-server/specialized_mcp_server.py /path/to/your/project --action import --memory-bank ./memory-bank
+python sparc-server/specialized_mcp_server.py /path/to/your/project \
+  --action import --memory-bank ./memory-bank
 
 # Or start fresh
 python sparc-server/specialized_mcp_server.py /path/to/your/project --action status
@@ -169,7 +171,8 @@ server = EnhancedContextPortalSPARCServer(
   "name": "🎨 Custom SPARC Mode",
   "description": "Your specialized mode with context awareness",
   "roleDefinition": "You are a specialized mode with access to project context...",
-  "customInstructions": "Always use sparc_rag_assist to get relevant context before making decisions...",
+  "customInstructions":
+    "Always call sparc_rag_assist for context before making decisions.",
   "groups": ["read", "edit", "mcp"],
   "mcpServers": ["sparc-context-portal"]
 }
