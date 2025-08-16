@@ -14,6 +14,8 @@ with the option to use either:
 
 import json
 import sqlite3
+import os
+import asyncio
 import numpy as np
 from typing import Any, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass
@@ -35,9 +37,9 @@ except ImportError:
     HAS_SENTENCE_TRANSFORMERS = False
 
 try:
-    import openai
+    from openai import AsyncOpenAI
     HAS_OPENAI = True
-except ImportError:
+except Exception:
     HAS_OPENAI = False
 
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -133,34 +135,69 @@ class SentenceTransformerProvider(EmbeddingProvider):
         return f"sentence_transformer_{self.model_name}"
 
 
+class OpenAIEmbeddingError(Exception):
+    """Raised when OpenAI embedding generation fails."""
+
+
 class OpenAIEmbeddingProvider(EmbeddingProvider):
-    """OpenAI embedding provider."""
-    
-    def __init__(self, model: str = "text-embedding-3-small", api_key: Optional[str] = None):
+    """OpenAI embedding provider with secure API handling."""
+
+    def __init__(
+        self,
+        model: str = "text-embedding-3-small",
+        api_key: Optional[str] = None,
+        timeout: float = 30.0,
+        max_retries: int = 3,
+    ) -> None:
         if not HAS_OPENAI:
             raise ImportError("openai not installed. Run: pip install openai")
-        
-        if api_key:
-            openai.api_key = api_key
-        
+
+        self._api_key = api_key or os.getenv("OPENAI_API_TOKEN")
+        if not self._api_key:
+            raise ValueError(
+                "OpenAI API token must be provided via parameter or OPENAI_API_TOKEN environment variable"
+            )
+
+        self.client = AsyncOpenAI(api_key=self._api_key, timeout=timeout)
         self.model = model
-        self._dimension = 1536 if "3-small" in model else 3072  # Approximate
-    
+        self._dimension = self._get_model_dimensions(model)
+        self._max_retries = max_retries
+
+    def _get_model_dimensions(self, model: str) -> int:
+        model_dimensions = {
+            "text-embedding-3-small": 1536,
+            "text-embedding-3-large": 3072,
+            "text-embedding-ada-002": 1536,
+        }
+        return model_dimensions.get(model, 1536)
+
+    def _validate_texts(self, texts: List[str]) -> None:
+        if not isinstance(texts, list) or any(not isinstance(t, str) for t in texts):
+            raise ValueError("texts must be a list of strings")
+        if not texts:
+            raise ValueError("texts list cannot be empty")
+
+    async def _async_embed(self, texts: List[str]) -> np.ndarray:
+        for attempt in range(1, self._max_retries + 1):
+            try:
+                resp = await self.client.embeddings.create(model=self.model, input=texts)
+                return np.array([d.embedding for d in resp.data])
+            except Exception as e:
+                if attempt == self._max_retries:
+                    raise OpenAIEmbeddingError(
+                        f"Failed to generate embeddings: {type(e).__name__}: {e}"
+                    ) from e
+                await asyncio.sleep(2 ** attempt)
+
     def encode(self, texts: List[str]) -> np.ndarray:
         if not texts:
             return np.array([])
-        
-        response = openai.embeddings.create(
-            model=self.model,
-            input=texts
-        )
-        
-        embeddings = [item.embedding for item in response.data]
-        return np.array(embeddings)
-    
+        self._validate_texts(texts)
+        return asyncio.run(self._async_embed(texts))
+
     def get_dimension(self) -> int:
         return self._dimension
-    
+
     @property
     def name(self) -> str:
         return f"openai_{self.model}"
