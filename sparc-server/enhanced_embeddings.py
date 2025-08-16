@@ -16,6 +16,7 @@ import json
 import sqlite3
 import os
 import asyncio
+import logging
 import numpy as np
 from typing import Any, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass
@@ -44,6 +45,14 @@ except Exception:
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+
+# OpenAI embedding model dimensions (based on latest OpenAI documentation)
+OPENAI_EMBEDDING_DIMENSIONS: Dict[str, int] = {
+    "text-embedding-3-small": 1536,  # Can be reduced using dimensions parameter
+    "text-embedding-3-large": 3072,  # Can be reduced using dimensions parameter
+    "text-embedding-ada-002": 1536,  # Legacy model, fixed dimensions
+}
+DEFAULT_OPENAI_EMBEDDING_DIMENSION = 1536
 
 
 @dataclass
@@ -164,12 +173,15 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
         self._max_retries = max_retries
 
     def _get_model_dimensions(self, model: str) -> int:
-        model_dimensions = {
-            "text-embedding-3-small": 1536,
-            "text-embedding-3-large": 3072,
-            "text-embedding-ada-002": 1536,
-        }
-        return model_dimensions.get(model, 1536)
+        dimension = OPENAI_EMBEDDING_DIMENSIONS.get(model)
+        if dimension is None:
+            logging.warning(
+                "Unknown OpenAI model %s, using default dimension %s",
+                model,
+                DEFAULT_OPENAI_EMBEDDING_DIMENSION,
+            )
+            return DEFAULT_OPENAI_EMBEDDING_DIMENSION
+        return dimension
 
     def _validate_texts(self, texts: List[str]) -> None:
         if not isinstance(texts, list) or any(not isinstance(t, str) for t in texts):
