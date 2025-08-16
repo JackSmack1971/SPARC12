@@ -195,10 +195,12 @@ server.rebuild_embeddings()
 
 ```bash
 # Export database to files
-python sparc-server/specialized_mcp_server.py /path/to/project --action export --memory-bank ./memory-bank
+python sparc-server/specialized_mcp_server.py /path/to/project \
+  --action export --memory-bank ./memory-bank
 
-# Import files to database  
-python sparc-server/specialized_mcp_server.py /path/to/project --action import --memory-bank ./memory-bank
+# Import files to database
+python sparc-server/specialized_mcp_server.py /path/to/project \
+  --action import --memory-bank ./memory-bank
 ```
 
 ## 🛠️ Troubleshooting
@@ -206,12 +208,14 @@ python sparc-server/specialized_mcp_server.py /path/to/project --action import -
 ### Common Issues
 
 1. **MCP Server Not Starting**
+
    ```bash
    # Check Python path and dependencies
    python sparc-server/sparc_mcp_server.py /path/to/project
    ```
 
 2. **No Search Results**
+
    ```bash
    # Rebuild embeddings
    python -c "
@@ -222,11 +226,13 @@ python sparc-server/specialized_mcp_server.py /path/to/project --action import -
    ```
 
 3. **Database Corruption**
+
    ```bash
    # Backup and rebuild from memory bank
    cp context-portal/context.db context-portal/context.db.backup
    rm context-portal/context.db
-   python sparc-server/specialized_mcp_server.py /path/to/project --action import --memory-bank ./memory-bank
+   python sparc-server/specialized_mcp_server.py /path/to/project \
+     --action import --memory-bank ./memory-bank
    ```
 
 ### Debug Mode

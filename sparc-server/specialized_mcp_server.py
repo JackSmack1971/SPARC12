@@ -46,6 +46,7 @@ import json
 import os
 import sqlite3
 import datetime
+import logging
 from dataclasses import dataclass, asdict
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -695,7 +696,8 @@ class ContextPortalSPARCServer:
                     with open(full, "r", encoding="utf-8") as f:
                         try:
                             data = json.load(f)
-                        except Exception:
+                        except (json.JSONDecodeError, OSError) as exc:
+                            logging.warning("Error processing %s: %s", filename, exc)
                             continue
                         category = os.path.splitext(filename)[0]
                         for key, value in data.items():
