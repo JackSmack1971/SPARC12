@@ -58,7 +58,7 @@ This document provides essential context for AI models interacting with this pro
     *   Run quality validation: `./.tools/quality-check.sh`
     *   Markdown linting: `markdownlint '**/*.md' --ignore AGENTS.md`
 *   **Testing Commands:** **All development phases require corresponding validation.**
-    *   Quality checks: `./.tools/quality-check.sh` (validates TODOs, secrets, file sizes)
+    *   Quality checks: `./.tools/quality-check.sh` (validates task markers, secrets, file sizes)
     *   Security scan: `bandit -r .` (Python security analysis)
     *   Markdown validation: `markdownlint '**/*.md'`
     *   **CRITICAL:** Quality checks **MUST** pass before phase transitions
@@ -70,7 +70,7 @@ This document provides essential context for AI models interacting with this pro
 
 ## 6. Git Workflow & PR Instructions
 
-*   **Pre-Commit Checks:** **ALWAYS** run `./.tools/quality-check.sh` and ensure no errors before committing. Verify no TODOs, secrets, or oversized files exist.
+*   **Pre-Commit Checks:** **ALWAYS** run `./.tools/quality-check.sh` and ensure no errors before committing. Verify no unfinished task markers, secrets, or oversized files exist.
 *   **Branching Strategy:** Work on feature branches for framework improvements. **DO NOT** commit directly to `main` branch.
 *   **Commit Messages:** Follow clear, descriptive commit message format. Include: What changed? Why? Any breaking changes to the framework?
 *   **Pull Request (PR) Process:**
@@ -104,7 +104,7 @@ This document provides essential context for AI models interacting with this pro
     *   Never skip memory bank updates - they provide critical context for subsequent phases
 *   **Quality Assurance & Verification:**
     *   **ALWAYS** run `./.tools/quality-check.sh` before considering any work complete
-    *   Verify no TODOs exist in main branch (quality check enforces this)
+    *   Verify no unfinished task markers exist in main branch (quality check enforces this)
     *   Ensure no secrets or credentials are in tracked files
     *   Validate file sizes remain under 1MB limit
     *   **ALL quality checks must pass before phase transitions**

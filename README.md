@@ -404,7 +404,7 @@ SPARC12/
 - **`memory-bank/`** - Central repository for project context, decisions, and phase tracking
 - **`.rooignore`** - Comprehensive security configuration preventing exposure of sensitive files
 - **`.roo/rules-*`** - Detailed instructions for each specialized development mode
-- **Quality Pipeline** - Automated validation for TODOs, secrets, and large files
+- **Quality Pipeline** - Automated validation for task markers, secrets, and large files
 
 ### Design Principles
 
@@ -462,7 +462,7 @@ SPARC12/
 
 ### Quality Standards
 
-- **No TODOs** in main branch (tracked by quality checks)
+- **No unfinished task markers** in main branch (tracked by quality checks)
 - **No secrets** or credentials in repository
 - **Files under 1MB** size limit
 - **Comprehensive documentation** for all phases
@@ -620,7 +620,7 @@ copies or substantial portions of the Software.
 - **Quality Pipeline:** GitHub Actions + Shell-based quality checks
 
 **Detected Scripts:**
-- `.tools/quality-check.sh` - Quality validation (TODO, secrets, file size)
+- `.tools/quality-check.sh` - Quality validation (task markers, secrets, file size)
 - `.github/workflows/sparc-quality.yml` - CI/CD automation
 
 **Environment Variables:** None detected (template-based configuration)
