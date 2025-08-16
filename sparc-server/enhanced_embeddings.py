@@ -30,6 +30,10 @@ class EmbeddingUpdateError(Exception):
 class SemanticSearchError(Exception):
     """Raised when semantic search fails."""
 
+
+class CustomDataProcessingError(Exception):
+    """Raised when processing custom data values fails unexpectedly."""
+
 # Optional imports - gracefully degrade if not available
 try:
     from sentence_transformers import SentenceTransformer
@@ -284,11 +288,34 @@ class EnhancedSPARCSearch:
             ).fetchone()
             if row:
                 try:
-                    value_str = json.loads(row["value"])
-                    if not isinstance(value_str, str):
-                        value_str = json.dumps(value_str)
-                except:
-                    value_str = row["value"]
+                    parsed_value = json.loads(row["value"])
+                    if isinstance(parsed_value, str):
+                        value_str = parsed_value
+                    else:
+                        value_str = json.dumps(parsed_value, ensure_ascii=False, separators=(",", ":"))
+                except json.JSONDecodeError as exc:
+                    logging.warning(
+                        "Failed to parse JSON value for custom_data id %s: %s",
+                        item_id,
+                        exc,
+                    )
+                    value_str = str(row["value"])
+                except (TypeError, KeyError) as exc:
+                    logging.warning(
+                        "Invalid data type or missing key for custom_data id %s: %s",
+                        item_id,
+                        exc,
+                    )
+                    value_str = str(row["value"])
+                except Exception as exc:
+                    logging.error(
+                        "Unexpected error processing custom_data id %s: %s",
+                        item_id,
+                        exc,
+                    )
+                    raise CustomDataProcessingError(
+                        f"Unexpected error processing custom_data id {item_id}"
+                    ) from exc
                 return f"{row['category']}/{row['key']}: {value_str}"
         
         return None
