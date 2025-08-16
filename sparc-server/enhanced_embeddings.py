@@ -49,6 +49,7 @@ except Exception:
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from scipy.spatial.distance import cosine
 
 # OpenAI embedding model dimensions (based on latest OpenAI documentation)
 OPENAI_EMBEDDING_DIMENSIONS: Dict[str, int] = {
@@ -414,10 +415,25 @@ class EnhancedSPARCSearch:
                 if stored_embedding.shape != query_embedding.shape:
                     continue
 
-                # Calculate cosine similarity
-                similarity = np.dot(query_embedding, stored_embedding) / (
-                    np.linalg.norm(query_embedding) * np.linalg.norm(stored_embedding)
-                )
+                try:
+                    # Convert cosine distance to similarity
+                    similarity = 1 - cosine(query_embedding, stored_embedding)
+                except Exception as exc:
+                    logging.error(
+                        "Similarity computation failed for %s id %s: %s",
+                        row["item_type"],
+                        row["item_id"],
+                        exc,
+                    )
+                    raise SemanticSearchError("Similarity computation failed") from exc
+
+                if np.isnan(similarity):
+                    logging.warning(
+                        "Zero-magnitude embedding detected for %s id %s",
+                        row["item_type"],
+                        row["item_id"],
+                    )
+                    similarity = 0.0
 
                 if similarity >= min_similarity:
                     # Get full item data

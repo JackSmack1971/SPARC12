@@ -5,6 +5,7 @@
 mcp>=1.0.0                    # Model Context Protocol
 scikit-learn>=1.3.0           # For TF-IDF vectorization and similarity
 numpy>=1.24.0                 # Numerical operations
+scipy>=1.10.0                 # Numerical algorithms and cosine distance
 
 # Optional: Enhanced embeddings
 sentence-transformers>=2.2.0  # For better semantic search (optional)
