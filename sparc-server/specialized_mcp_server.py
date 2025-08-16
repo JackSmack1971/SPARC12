@@ -48,7 +48,8 @@ import sqlite3
 import datetime
 import logging
 from dataclasses import dataclass, asdict
-from typing import Any, Dict, List, Optional, Tuple
+from types import TracebackType
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -127,7 +128,12 @@ class ContextPortalSPARCServer:
     def __enter__(self) -> "ContextPortalSPARCServer":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
         self.close()
 
     def close(self) -> None:
@@ -528,10 +534,17 @@ class ContextPortalSPARCServer:
     # Phase management
     def get_current_phase(self) -> str:
         c = self._conn.cursor()
-        row = c.execute("SELECT name FROM phases WHERE status = 'active' LIMIT 1").fetchone()
+        c.row_factory = sqlite3.Row
+        try:
+            row = c.execute(
+                "SELECT name FROM phases WHERE status = 'active' LIMIT 1"
+            ).fetchone()
+        except sqlite3.DatabaseError as exc:
+            raise DatabaseQueryError("Failed to fetch current phase") from exc
+        finally:
+            c.close()
         if row:
             return row["name"]
-        # Fallback to first phase
         return self.PHASE_SEQUENCE[0]
 
     def transition_to_next_phase(self) -> None:
