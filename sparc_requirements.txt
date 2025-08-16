@@ -1,0 +1,37 @@
+# SPARC12 Enhanced Context Portal Requirements
+# =============================================
+
+# Core dependencies
+mcp>=1.0.0                    # Model Context Protocol
+scikit-learn>=1.3.0           # For TF-IDF vectorization and similarity
+numpy>=1.24.0                 # Numerical operations
+
+# Optional: Enhanced embeddings
+sentence-transformers>=2.2.0  # For better semantic search (optional)
+openai>=1.0.0                 # For OpenAI embeddings (optional)
+
+# Optional: Additional features
+sqlite-vec>=0.1.0             # For native SQLite vector operations (optional)
+chromadb>=0.4.0               # Alternative vector database (optional)
+
+# Development and testing
+pytest>=7.0.0                 # Testing framework
+pytest-asyncio>=0.21.0        # Async testing support
+black>=23.0.0                 # Code formatting
+mypy>=1.5.0                   # Type checking
+
+# Documentation
+mkdocs>=1.5.0                 # Documentation generation
+mkdocs-material>=9.0.0        # Material theme for docs
+
+# Installation command:
+# pip install -r requirements.txt
+
+# For minimal installation (core features only):
+# pip install mcp scikit-learn numpy
+
+# For enhanced features:
+# pip install -r requirements.txt
+
+# For development:
+# pip install -r requirements.txt -e .
