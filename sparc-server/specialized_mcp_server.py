@@ -395,39 +395,30 @@ class ContextPortalSPARCServer:
         rows = c.execute(query, params).fetchall()
         return [dict(row) for row in rows]
 
-    def update_progress(
-        self,
-        progress_id: int,
-        status: Optional[str] = None,
-        description: Optional[str] = None,
-        parent_id: Optional[int] = None,
-    ) -> None:
-        c = self._conn.cursor()
-        updated = False
+    def update_progress(self, progress_id: int, status: Optional[str] = None,
+                        description: Optional[str] = None,
+                        parent_id: Optional[int] = None) -> None:
+        if not any([status is not None, description is not None, parent_id is not None]):
+            raise ValueError("At least one field must be provided for update")
+        c = None
         try:
-            if status is not None:
+            with self._conn:
+                c = self._conn.cursor()
+                exists = c.execute("SELECT 1 FROM progress WHERE id = ?", (progress_id,)).fetchone()
+                if not exists: raise DatabaseUpdateError(f"Progress item with id {progress_id} not found")
+                update_fields, params = [], []
+                if status is not None: update_fields.append("status = ?"); params.append(status)
+                if description is not None: update_fields.append("description = ?"); params.append(description)
+                if parent_id is not None: update_fields.append("parent_id = ?"); params.append(parent_id)
+                params.append(progress_id)
                 c.execute(
-                    "UPDATE progress SET status = ? WHERE id = ?",
-                    (status, progress_id),
+                    f"UPDATE progress SET {', '.join(update_fields)} WHERE id = ?",  # nosec B608
+                    params,
                 )
-                updated = True
-            if description is not None:
-                c.execute(
-                    "UPDATE progress SET description = ? WHERE id = ?",
-                    (description, progress_id),
-                )
-                updated = True
-            if parent_id is not None:
-                c.execute(
-                    "UPDATE progress SET parent_id = ? WHERE id = ?",
-                    (parent_id, progress_id),
-                )
-                updated = True
-            if updated:
-                self._conn.commit()
         except sqlite3.DatabaseError as exc:
-            self._conn.rollback()
-            raise DatabaseUpdateError("Failed to update progress") from exc
+            raise DatabaseUpdateError(f"Failed to update progress {progress_id}: {exc}") from exc
+        finally:
+            if c: c.close()
 
     def delete_progress_by_id(self, progress_id: int) -> None:
         c = self._conn.cursor()
