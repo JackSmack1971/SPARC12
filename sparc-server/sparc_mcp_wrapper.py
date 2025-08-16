@@ -20,6 +20,14 @@ from mcp.server.models import InitializationOptions
 from specialized_mcp_server import ContextPortalSPARCServer
 
 
+class InputValidationError(ValueError):
+    """Raised when tool input validation fails."""
+
+
+class DecisionLoggingError(Exception):
+    """Raised when logging a decision fails."""
+
+
 class SPARCMCPServer:
     """MCP Server wrapper for SPARC Context Portal functionality."""
     
@@ -357,7 +365,56 @@ class SPARCMCPServer:
                     type="text",
                     text=f"Error executing {name}: {str(e)}"
                 )]
-    
+
+    def _clean_tags(self, tags: Any) -> List[str]:
+        """Validate and sanitize tag list."""
+        if tags is None:
+            return []
+        if not isinstance(tags, list):
+            raise InputValidationError("Tags must be a list")
+        cleaned: List[str] = []
+        for tag in tags:
+            if tag is None:
+                continue
+            tag_str = str(tag).strip()
+            if not tag_str:
+                continue
+            if len(tag_str) > 50:
+                raise InputValidationError(
+                    f"Individual tag must be 50 characters or less: '{tag_str[:20]}...'"
+                )
+            cleaned.append(tag_str)
+        if len(cleaned) > 20:
+            raise InputValidationError(
+                f"Maximum 20 tags allowed (current: {len(cleaned)})"
+            )
+        return cleaned
+
+    def _log_decision_tool(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate inputs and log a decision."""
+        summary = str(args.get("summary", "")).strip()
+        rationale = str(args.get("rationale", "")).strip()
+        if not summary:
+            raise InputValidationError("Summary is required and cannot be empty")
+        if not rationale:
+            raise InputValidationError("Rationale is required and cannot be empty")
+        if len(summary) > 500:
+            raise InputValidationError(
+                f"Summary must be 500 characters or less (current: {len(summary)})"
+            )
+        if len(rationale) > 5000:
+            raise InputValidationError(
+                f"Rationale must be 5000 characters or less (current: {len(rationale)})"
+            )
+        tags = self._clean_tags(args.get("tags", []))
+        try:
+            decision_id = self.context_server.log_decision(
+                summary=summary, rationale=rationale, tags=tags
+            )
+            return {"decision_id": decision_id, "logged": True}
+        except Exception as exc:
+            raise DecisionLoggingError(f"Failed to log decision: {exc}") from exc
+
     async def _execute_tool(self, name: str, args: dict) -> Any:
         """Execute a specific tool call."""
         server = self.context_server
@@ -398,15 +455,10 @@ class SPARCMCPServer:
                 patch_content=args.get("patch_content")
             )
             return {"updated": True}
-        
+
         # Decision logging
         elif name == "sparc_log_decision":
-            decision_id = server.log_decision(
-                summary=args["summary"],
-                rationale=args["rationale"],
-                tags=args.get("tags")
-            )
-            return {"decision_id": decision_id, "logged": True}
+            return self._log_decision_tool(args)
         
         elif name == "sparc_get_decisions":
             decisions = server.get_decisions(
