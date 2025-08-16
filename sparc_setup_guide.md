@@ -1,10 +1,11 @@
 # SPARC12 Enhanced Setup Guide
 
-Complete setup guide for integrating your specialized SPARC Context Portal with Roo Code.
+Complete setup guide for integrating your specialized SPARC Context Portal with
+Roo Code.
 
 ## 📁 Project Structure
 
-```
+```text
 your-project/
 ├── .roo/
 │   ├── mcp.json                    # MCP server configuration
@@ -76,7 +77,8 @@ Save the enhanced `.roomodes` configuration in your project root.
 
 ```bash
 # Initialize with existing memory bank (if you have one)
-python sparc-server/specialized_mcp_server.py /path/to/your/project --action import --memory-bank ./memory-bank
+python sparc-server/specialized_mcp_server.py /path/to/your/project \
+  --action import --memory-bank ./memory-bank
 
 # Or start fresh
 python sparc-server/specialized_mcp_server.py /path/to/your/project --action status
@@ -169,7 +171,8 @@ server = EnhancedContextPortalSPARCServer(
   "name": "🎨 Custom SPARC Mode",
   "description": "Your specialized mode with context awareness",
   "roleDefinition": "You are a specialized mode with access to project context...",
-  "customInstructions": "Always use sparc_rag_assist to get relevant context before making decisions...",
+  "customInstructions":
+    "Always call sparc_rag_assist for context before making decisions.",
   "groups": ["read", "edit", "mcp"],
   "mcpServers": ["sparc-context-portal"]
 }
@@ -195,10 +198,12 @@ server.rebuild_embeddings()
 
 ```bash
 # Export database to files
-python sparc-server/specialized_mcp_server.py /path/to/project --action export --memory-bank ./memory-bank
+python sparc-server/specialized_mcp_server.py /path/to/project \
+  --action export --memory-bank ./memory-bank
 
-# Import files to database  
-python sparc-server/specialized_mcp_server.py /path/to/project --action import --memory-bank ./memory-bank
+# Import files to database
+python sparc-server/specialized_mcp_server.py /path/to/project \
+  --action import --memory-bank ./memory-bank
 ```
 
 ## 🛠️ Troubleshooting
@@ -206,12 +211,14 @@ python sparc-server/specialized_mcp_server.py /path/to/project --action import -
 ### Common Issues
 
 1. **MCP Server Not Starting**
+
    ```bash
    # Check Python path and dependencies
    python sparc-server/sparc_mcp_server.py /path/to/project
    ```
 
 2. **No Search Results**
+
    ```bash
    # Rebuild embeddings
    python -c "
@@ -222,11 +229,13 @@ python sparc-server/specialized_mcp_server.py /path/to/project --action import -
    ```
 
 3. **Database Corruption**
+
    ```bash
    # Backup and rebuild from memory bank
    cp context-portal/context.db context-portal/context.db.backup
    rm context-portal/context.db
-   python sparc-server/specialized_mcp_server.py /path/to/project --action import --memory-bank ./memory-bank
+   python sparc-server/specialized_mcp_server.py /path/to/project \
+     --action import --memory-bank ./memory-bank
    ```
 
 ### Debug Mode
@@ -253,21 +262,25 @@ Add to your MCP configuration:
 With this setup, your SPARC modes become incredibly powerful:
 
 ### ✨ **Context Awareness**
+
 - Every mode can access the full project history
 - Intelligent suggestions based on similar past decisions
 - Cross-phase knowledge transfer
 
 ### 🔍 **Semantic Search**
+
 - Find relevant patterns and decisions using natural language
 - Discover connections between different project aspects
 - Learn from previous project experiences
 
 ### 📈 **Progressive Intelligence**
+
 - System gets smarter as you use it more
 - Builds up organizational knowledge over time
 - Shares learnings across projects
 
 ### 🚀 **Enhanced Productivity**
+
 - Modes provide context-aware suggestions
 - Reduce time spent researching solutions
 - Avoid repeating past mistakes
@@ -280,4 +293,5 @@ With this setup, your SPARC modes become incredibly powerful:
 4. **Customize**: Create specialized modes for your specific workflow
 5. **Scale**: Add cross-project knowledge sharing
 
-This enhanced SPARC12 framework transforms your development process from manual documentation to intelligent, context-aware assistance!
+This enhanced SPARC12 framework transforms your development process from manual
+documentation to intelligent, context-aware assistance!
