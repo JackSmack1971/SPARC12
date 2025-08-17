@@ -30,16 +30,22 @@ def test_build_decisions_query_filters_limit() -> None:
         tags_filter_include_all=["a"], tags_filter_include_any=["b"], limit=5
     )
     expected = (
-        "SELECT * FROM decisions WHERE tags LIKE ? AND (tags LIKE ?) ORDER BY id DESC LIMIT 5"
+        "SELECT * FROM decisions WHERE tags LIKE ? AND (tags LIKE ?) ORDER BY id DESC LIMIT ?"
     )
     assert query == expected
-    assert params == ["%a%", "%b%"]
+    assert params == ["%a%", "%b%", 5]
 
 
 def test_build_decisions_query_invalid_tags() -> None:
     server = _server()
     with pytest.raises(QueryBuilderError):
         server.build_decisions_query(tags_filter_include_all="bad")
+
+
+def test_build_decisions_query_invalid_limit() -> None:
+    server = _server()
+    with pytest.raises(QueryBuilderError):
+        server.build_decisions_query(limit="1; DROP TABLE decisions")
 
 
 def test_get_decisions_filters_results() -> None:
