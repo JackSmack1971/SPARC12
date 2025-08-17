@@ -10,11 +10,11 @@ This document provides essential context for AI models interacting with this pro
 
 ## 2. Core Technologies & Stack
 
-*   **Languages:** Shell/Bash (automation scripts), Markdown (documentation), JSON (configuration).
-*   **Frameworks & Runtimes:** Roo Code Custom Modes (primary framework), GitHub Actions (CI/CD).
-*   **Databases:** File-based persistence via memory bank structure (no traditional database).
-*   **Key Libraries/Dependencies:** bandit (Python security scanning), markdownlint-cli (Markdown linting), various shell utilities.
-*   **Package Manager:** Git (for template distribution), npm (for markdown tooling when used).
+*   **Languages:** Shell/Bash (automation scripts), Markdown (documentation), JSON (configuration), Python 3.8+ (enhanced server components).
+*   **Frameworks & Runtimes:** Roo Code Custom Modes (primary framework), GitHub Actions (CI/CD), SQLite (enhanced context portal), Model Context Protocol (MCP).
+*   **Databases:** File-based persistence via memory bank structure (primary), SQLite (enhanced context portal with semantic search).
+*   **Key Libraries/Dependencies:** bandit (Python security scanning), markdownlint-cli (Markdown linting), scikit-learn (semantic search), mcp (Model Context Protocol), pytest (testing framework).
+*   **Package Manager:** Git (for template distribution), npm (for markdown tooling when used), pip (for Python dependencies).
 *   **Platforms:** Cross-platform (designed to work with any Roo Code-compatible environment).
 
 ## 3. Architectural Patterns & Structure
@@ -26,6 +26,8 @@ This document provides essential context for AI models interacting with this pro
     *   `.tools/` - Development utilities and quality validation scripts
     *   `.github/workflows/` - CI/CD automation pipelines
     *   `docs/` - Project documentation and deliverables
+    *   `sparc-server/` - Enhanced MCP server implementation with semantic search
+    *   `tests/` - Python test suite for server components
 *   **Module Organization:** Each development phase is handled by a specialized AI mode with specific file access permissions defined in `.roomodes`. Context flows through the memory bank system, maintaining project knowledge across phase transitions.
 *   **Common Patterns & Idioms:**
     *   **Mode Specialization:** Each AI mode has specific responsibilities and file access patterns
@@ -36,15 +38,16 @@ This document provides essential context for AI models interacting with this pro
 
 ## 4. Coding Conventions & Style Guide
 
-*   **Formatting:** Markdown follows standard conventions with relative links. JSON uses 2-space indentation. Shell scripts use `set -euo pipefail` for safety. Maximum line length varies by file type but generally follows readability standards.
+*   **Formatting:** Markdown follows standard conventions with relative links. JSON uses 2-space indentation. Shell scripts use `set -euo pipefail` for safety. Python follows PEP 8 standards. Maximum line length varies by file type but generally follows readability standards.
 *   **Naming Conventions:**
     *   Mode slugs: `kebab-case` (e.g., `sparc-orchestrator`, `sparc-code-implementer`)
-    *   Memory bank files: `snake_case` (e.g., `current_phase.md`, `architectural_decisions.md`)
+    *   Memory bank files: `snake_case` or `kebab-case` (e.g., `current-phase.md`, `architectural-decisions.md`)
     *   GitHub workflows: `kebab-case` (e.g., `sparc-quality.yml`)
     *   Documentation files: `kebab-case` or `camelCase` depending on context
+    *   Python: `snake_case` for variables, functions, methods, files; `PascalCase` for classes
 *   **API Design Principles:** The framework emphasizes clear role separation, explicit handoffs between phases, and maintaining comprehensive context. Each mode has well-defined responsibilities and file access patterns.
 *   **Documentation Style:** Memory bank documentation should be concise and actionable. Each phase produces specific deliverables documented in `memory-bank/phases/`. All mode instructions follow a consistent template structure.
-*   **Error Handling:** Shell scripts use strict error handling with `set -euo pipefail`. Quality checks provide clear pass/fail criteria. Security validation is mandatory and blocking.
+*   **Error Handling:** Shell scripts use strict error handling with `set -euo pipefail`. Python uses standard exception handling with custom exception classes. Quality checks provide clear pass/fail criteria. Security validation is mandatory and blocking.
 *   **Forbidden Patterns:** **NEVER** commit secrets or credentials to any tracked files. **NEVER** bypass security validation in `.rooignore`. **NEVER** skip quality gates between phases.
 
 ## 5. Development & Testing Workflow
@@ -54,25 +57,30 @@ This document provides essential context for AI models interacting with this pro
     2. Clone the SPARC12 template: `git clone https://github.com/JackSmack1971/SPARC12.git my-new-project`
     3. Initialize for your project: Update `projectBrief.md`, configure `.roomodes` if needed
     4. Set initial phase: `echo "research" > memory-bank/current-phase.md`
+    5. For enhanced features: `pip install -r sparc-server/requirements.txt`
 *   **Build Commands:**
     *   Run quality validation: `./.tools/quality-check.sh`
     *   Markdown linting: `markdownlint '**/*.md' --ignore AGENTS.md`
+    *   Python tests: `pytest tests/` (for enhanced server components)
 *   **Testing Commands:** **All development phases require corresponding validation.**
     *   Quality checks: `./.tools/quality-check.sh` (validates task markers, secrets, file sizes)
     *   Security scan: `bandit -r .` (Python security analysis)
     *   Markdown validation: `markdownlint '**/*.md'`
+    *   Python tests: `pytest -q` (for server components)
     *   **CRITICAL:** Quality checks **MUST** pass before phase transitions
+    *   **MUST** mock any external dependencies to ensure tests do not make external calls
 *   **Linting/Formatting Commands:** **All content MUST pass quality checks before committing.**
     *   Shell script validation: Built into quality checks
     *   JSON validation: Built into quality checks
     *   Documentation standards: Built into quality checks
+    *   Python: Use `black`, `isort`, `flake8` for formatting and linting
 *   **CI/CD Process Overview:** GitHub Actions automatically run quality checks, security scans, and documentation validation on every pull request. No code merges until all workflows pass.
 
 ## 6. Git Workflow & PR Instructions
 
 *   **Pre-Commit Checks:** **ALWAYS** run `./.tools/quality-check.sh` and ensure no errors before committing. Verify no unfinished task markers, secrets, or oversized files exist.
 *   **Branching Strategy:** Work on feature branches for framework improvements. **DO NOT** commit directly to `main` branch.
-*   **Commit Messages:** Follow clear, descriptive commit message format. Include: What changed? Why? Any breaking changes to the framework?
+*   **Commit Messages:** Follow clear, descriptive commit message format. Include: What changed? Why? Any breaking changes to the framework? Consider following Conventional Commits specification (e.g., `feat:`, `fix:`, `docs:`).
 *   **Pull Request (PR) Process:**
     1. Ensure your branch is up-to-date with `main`
     2. Run all quality checks and ensure they pass
@@ -108,6 +116,7 @@ This document provides essential context for AI models interacting with this pro
     *   Ensure no secrets or credentials are in tracked files
     *   Validate file sizes remain under 1MB limit
     *   **ALL quality checks must pass before phase transitions**
+    *   For Python components: Run `pytest -q` and ensure all tests pass
 *   **Security-Specific Instructions:**
     *   **FIRST ACTION** when using any implementation mode: verify `.rooignore` coverage
     *   Never modify `.rooignore` to be less restrictive without explicit justification
@@ -118,11 +127,16 @@ This document provides essential context for AI models interacting with this pro
     *   Each mode has specific file access patterns - respect the permissions defined in `.roomodes`
     *   Phase transitions require orchestrator coordination - don't jump between phases arbitrarily
     *   Context preservation is critical - always update memory bank before mode handoffs
+*   **Enhanced Context Portal (sparc-server/):**
+    *   Use `python sparc-server/specialized_mcp_server.py <workspace_path> --action status` to check system status
+    *   For MCP integration: Configure `.roo/mcp.json` with proper server settings
+    *   Run `pip install -r sparc-server/requirements.txt` for enhanced semantic search capabilities
 *   **Troubleshooting & Debugging:**
     *   If quality checks fail, examine the specific error output from `./.tools/quality-check.sh`
     *   For mode permission issues, verify the file regex patterns in `.roomodes`
     *   For phase confusion, check `memory-bank/current-phase.md` and relevant status files
     *   Always provide full error output when reporting issues
+    *   For Python components: Include full stack traces and use `pytest -v` for detailed test output
 *   **Breaking Down Large Work:**
     *   Framework improvements should be broken into logical phases following SPARC methodology
     *   Each phase should have clear deliverables and updated memory bank documentation
@@ -133,3 +147,9 @@ This document provides essential context for AI models interacting with this pro
     *   **DO NOT** work outside the designated mode permissions
     *   **DO NOT** commit any files that would violate `.rooignore` patterns
     *   **DO NOT** skip memory bank documentation updates
+    *   **DO NOT** use `localStorage` or `sessionStorage` in any artifacts (not supported in Claude.ai environment)
+*   **Dependencies Management:**
+    *   For Python dependencies: Use `pip install` and update `requirements.txt`
+    *   For npm dependencies: Use `npm install` for markdown tooling
+    *   Always run quality checks after dependency changes
+*   **Pass/Fail Criteria:** Quality checks define the finish line. The agent stops only when `./.tools/quality-check.sh` passes without errors and all relevant tests are green.
