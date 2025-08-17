@@ -67,6 +67,10 @@ class DatabaseConnectionError(Exception):
     """Raised when establishing a database connection fails."""
 
 
+class QueryBuilderError(Exception):
+    """Raised when building a database query fails."""
+
+
 def _current_timestamp() -> str:
     """Return the current UTC timestamp as ISO8601 string."""
     return datetime.datetime.utcnow().isoformat() + "Z"
@@ -317,6 +321,51 @@ class ContextPortalSPARCServer:
         self._conn.commit()
         return c.lastrowid
 
+    def build_decisions_query(
+        self,
+        tags_filter_include_all: Optional[List[str]] = None,
+        tags_filter_include_any: Optional[List[str]] = None,
+        limit: Optional[int] = None,
+    ) -> Tuple[str, List[Any]]:
+        """Build parameterized query for decisions with filters."""
+        base_query = "SELECT * FROM decisions"
+        conditions: List[str] = []
+        params: List[Any] = []
+
+        if tags_filter_include_all is not None:
+            if not isinstance(tags_filter_include_all, list) or not all(
+                isinstance(tag, str) for tag in tags_filter_include_all
+            ):
+                raise QueryBuilderError(
+                    "tags_filter_include_all must be a list of strings"
+                )
+            conditions.extend(["tags LIKE ?" for _ in tags_filter_include_all])
+            params.extend([f"%{tag}%" for tag in tags_filter_include_all])
+
+        if tags_filter_include_any is not None:
+            if not isinstance(tags_filter_include_any, list) or not all(
+                isinstance(tag, str) for tag in tags_filter_include_any
+            ):
+                raise QueryBuilderError(
+                    "tags_filter_include_any must be a list of strings"
+                )
+            any_conditions = " OR ".join(["tags LIKE ?" for _ in tags_filter_include_any])
+            conditions.append(f"({any_conditions})")
+            params.extend([f"%{tag}%" for tag in tags_filter_include_any])
+
+        query_parts = [base_query]
+        if conditions:
+            query_parts.append("WHERE " + " AND ".join(conditions))
+
+        query_parts.append("ORDER BY id DESC")
+
+        if limit is not None:
+            if not isinstance(limit, int) or limit <= 0:
+                raise QueryBuilderError("limit must be a positive integer")
+            query_parts.append(f"LIMIT {limit}")
+
+        return " ".join(query_parts), params
+
     def get_decisions(
         self,
         limit: Optional[int] = None,
@@ -324,23 +373,15 @@ class ContextPortalSPARCServer:
         tags_filter_include_any: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
         c = self._conn.cursor()
-        query = "SELECT * FROM decisions"
-        params: List[Any] = []
-        conditions: List[str] = []
-        if tags_filter_include_all:
-            for tag in tags_filter_include_all:
-                conditions.append("tags LIKE ?")
-                params.append(f"%{tag}%")
-        if tags_filter_include_any:
-            tags_any = [f"tags LIKE ?" for _ in tags_filter_include_any]
-            conditions.append("(" + " OR ".join(tags_any) + ")")
-            params.extend([f"%{tag}%" for tag in tags_filter_include_any])
-        if conditions:
-            query += " WHERE " + " AND ".join(conditions)
-        query += " ORDER BY id DESC"
-        if limit:
-            query += f" LIMIT {int(limit)}"
-        rows = c.execute(query, params).fetchall()
+        query, params = self.build_decisions_query(
+            tags_filter_include_all=tags_filter_include_all,
+            tags_filter_include_any=tags_filter_include_any,
+            limit=limit,
+        )
+        try:
+            rows = c.execute(query, params).fetchall()
+        except sqlite3.Error as exc:
+            raise DatabaseQueryError(str(exc)) from exc
         return [dict(row) for row in rows]
 
     def search_decisions_fts(self, query_term: str, limit: int = 5) -> List[Dict[str, Any]]:
