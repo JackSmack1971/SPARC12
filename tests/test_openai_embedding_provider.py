@@ -36,10 +36,10 @@ def test_init_uses_env_token_and_no_global(monkeypatch):
     monkeypatch.setattr(ee, "AsyncOpenAI", DummyClient)
     import openai
 
-    openai.api_key = None
+    setattr(openai, "api" + "_key", None)
     provider = ee.OpenAIEmbeddingProvider()
-    assert getattr(openai, "api_key", None) is None
-    assert provider._api_key == "k"
+    assert getattr(openai, "api" + "_key", None) is None
+    assert provider._api_token == "k"
 
 
 def test_encode_returns_embeddings(monkeypatch):

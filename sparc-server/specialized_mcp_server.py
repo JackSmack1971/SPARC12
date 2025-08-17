@@ -48,8 +48,9 @@ import sqlite3
 import datetime
 import logging
 from dataclasses import dataclass, asdict
+from pathlib import Path
 from types import TracebackType
-from typing import Any, Dict, List, Optional, Tuple, Type
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -69,6 +70,10 @@ class DatabaseConnectionError(Exception):
 
 class QueryBuilderError(Exception):
     """Raised when building a database query fails."""
+
+
+class MemoryBankSyncError(Exception):
+    """Raised when syncing with the memory bank fails."""
 
 
 def _current_timestamp() -> str:
@@ -724,147 +729,187 @@ class ContextPortalSPARCServer:
         filter_types = type_map.get(mode, None)
         return self.semantic_search(query_text=query, top_k=top_k, filter_item_types=filter_types)
 
+    def _resolve_memory_bank_path(
+        self, memory_bank_dir: Union[str, Path], *, must_exist: bool = True
+    ) -> Path:
+        """Validate and resolve a memory bank path within the workspace."""
+        try:
+            rel_path = Path(memory_bank_dir)
+            if not memory_bank_dir or rel_path.is_absolute():
+                raise MemoryBankSyncError(
+                    "Memory bank path must be a non-empty relative path"
+                )
+            base = Path(self.workspace_dir).resolve()
+            full = (base / rel_path).resolve()
+            try:
+                if not full.is_relative_to(base):
+                    raise MemoryBankSyncError(
+                        "Memory bank path outside allowed workspace"
+                    )
+            except AttributeError:
+                try:
+                    full.relative_to(base)
+                except ValueError:
+                    raise MemoryBankSyncError(
+                        "Memory bank path outside allowed workspace"
+                    )
+            if must_exist:
+                if not full.exists() or not full.is_dir():
+                    raise MemoryBankSyncError(
+                        f"Memory bank directory not found: {full}"
+                    )
+                if hasattr(full, "is_reserved") and full.is_reserved():
+                    raise MemoryBankSyncError(
+                        f"Memory bank path uses reserved name: {full}"
+                    )
+            return full
+        except OSError as exc:
+            raise MemoryBankSyncError(f"Invalid memory bank path: {exc}") from exc
+
     # File/database synchronisation
-    def sync_from_memory_bank(self, memory_bank_dir: str) -> None:
-        """Import context from a SPARC12 memory bank directory.
+    def sync_from_memory_bank(self, memory_bank_dir: Union[str, Path]) -> None:
+        """Import context from a validated SPARC12 memory bank directory."""
+        try:
+            mb_path = self._resolve_memory_bank_path(memory_bank_dir)
+            # Import decisions
+            decisions_dir = mb_path / "context"
+            if decisions_dir.is_dir():
+                for path in decisions_dir.iterdir():
+                    if path.name.endswith("-decisions.md") and path.is_file():
+                        with path.open("r", encoding="utf-8") as f:
+                            for line in f:
+                                if line.startswith("- "):
+                                    content = line[2:].strip()
+                                    parts = content.split(";")
+                                    summary = parts[0].strip()
+                                    rationale = parts[1].strip() if len(parts) > 1 else ""
+                                    tags = []
+                                    if (
+                                        parts
+                                        and parts[-1].strip().startswith("(")
+                                        and parts[-1].strip().endswith(")")
+                                    ):
+                                        tag_str = parts[-1].strip()[1:-1]
+                                        tags = [t.strip() for t in tag_str.split(",") if t.strip()]
+                                    self.log_decision(
+                                        summary=summary, rationale=rationale, tags=tags
+                                    )
+            # Import progress
+            phases_dir = mb_path / "phases"
+            if phases_dir.is_dir():
+                for path in phases_dir.iterdir():
+                    if path.name.endswith("-status.md") and path.is_file():
+                        with path.open("r", encoding="utf-8") as f:
+                            for line in f:
+                                line = line.strip()
+                                if line.startswith("- "):
+                                    content = line[2:]
+                                    if content.startswith("["):
+                                        end_bracket = content.find("]")
+                                        if end_bracket != -1:
+                                            status = content[1:end_bracket]
+                                            description = content[end_bracket + 1 :].strip()
+                                            self.log_progress(
+                                                description=description, status=status
+                                            )
+            # Import system patterns
+            if decisions_dir.is_dir():
+                for path in decisions_dir.iterdir():
+                    if path.name.endswith("-patterns.md") and path.is_file():
+                        with path.open("r", encoding="utf-8") as f:
+                            current_name = None
+                            desc_lines: List[str] = []
+                            for line in f:
+                                if line.startswith("## "):
+                                    if current_name is not None:
+                                        description = "\n".join(desc_lines).strip()
+                                        self.log_system_pattern(
+                                            name=current_name, description=description
+                                        )
+                                    current_name = line[3:].strip()
+                                    desc_lines = []
+                                else:
+                                    desc_lines.append(line.rstrip())
+                            if current_name:
+                                description = "\n".join(desc_lines).strip()
+                                self.log_system_pattern(
+                                    name=current_name, description=description
+                                )
+            # Import custom data from JSON
+            for root, _, files in os.walk(decisions_dir):
+                for filename in files:
+                    if filename.endswith(".json"):
+                        full = Path(root) / filename
+                        with full.open("r", encoding="utf-8") as f:
+                            try:
+                                data = json.load(f)
+                            except (json.JSONDecodeError, OSError) as exc:
+                                logging.warning("Error processing %s: %s", filename, exc)
+                                continue
+                            category = Path(filename).stem
+                            for key, value in data.items():
+                                self.log_custom_data(
+                                    category=category, key=key, value=value
+                                )
+        except MemoryBankSyncError:
+            raise
+        except Exception as exc:
+            raise MemoryBankSyncError(
+                f"Failed to sync from memory bank: {exc}"
+            ) from exc
 
-        This method scans the provided memory_bank_dir for markdown files and
-        updates the database accordingly.  It looks for decisions in
-        ``memory-bank/context/`` (files ending in "-decisions.md"), progress
-        in ``memory-bank/phases/`` (files containing bullet lists of tasks),
-        and system patterns in ``memory-bank/context/`` (files ending in
-        "-patterns.md").  Custom data can be imported from
-        ``memory-bank/context/*.json`` files.  The parser is intentionally
-        simplistic; more sophisticated parsing can be added as needed.
-        """
-        mb_path = os.path.abspath(memory_bank_dir)
-        if not os.path.isdir(mb_path):
-            raise FileNotFoundError(f"Memory bank directory not found: {mb_path}")
-        # Import decisions
-        decisions_dir = os.path.join(mb_path, "context")
-        if os.path.isdir(decisions_dir):
-            for filename in os.listdir(decisions_dir):
-                full = os.path.join(decisions_dir, filename)
-                if filename.endswith("-decisions.md") and os.path.isfile(full):
-                    with open(full, "r", encoding="utf-8") as f:
-                        for line in f:
-                            if line.startswith("- "):
-                                # Expect format: - Summary: rationale (tags)
-                                content = line[2:].strip()
-                                parts = content.split(";")
-                                summary = parts[0].strip()
-                                rationale = parts[1].strip() if len(parts) > 1 else ""
-                                tags = []
-                                # Extract tags within parentheses at end
-                                if parts and parts[-1].strip().startswith("(") and parts[-1].strip().endswith(")"):
-                                    tag_str = parts[-1].strip()[1:-1]
-                                    tags = [t.strip() for t in tag_str.split(",") if t.strip()]
-                                self.log_decision(summary=summary, rationale=rationale, tags=tags)
-        # Import progress
-        phases_dir = os.path.join(mb_path, "phases")
-        if os.path.isdir(phases_dir):
-            for filename in os.listdir(phases_dir):
-                full = os.path.join(phases_dir, filename)
-                if filename.endswith("-status.md") and os.path.isfile(full):
-                    with open(full, "r", encoding="utf-8") as f:
-                        for line in f:
-                            line = line.strip()
-                            if line.startswith("- "):
-                                # Expect format: - [status] description
-                                content = line[2:]
-                                if content.startswith("["):
-                                    end_bracket = content.find("]")
-                                    if end_bracket != -1:
-                                        status = content[1:end_bracket]
-                                        description = content[end_bracket+1:].strip()
-                                        self.log_progress(description=description, status=status)
-        # Import system patterns
-        if os.path.isdir(decisions_dir):
-            for filename in os.listdir(decisions_dir):
-                full = os.path.join(decisions_dir, filename)
-                if filename.endswith("-patterns.md") and os.path.isfile(full):
-                    with open(full, "r", encoding="utf-8") as f:
-                        current_name = None
-                        desc_lines: List[str] = []
-                        for line in f:
-                            if line.startswith("## "):
-                                # Save previous pattern
-                                if current_name is not None:
-                                    description = "\n".join(desc_lines).strip()
-                                    self.log_system_pattern(name=current_name, description=description)
-                                current_name = line[3:].strip()
-                                desc_lines = []
-                            else:
-                                desc_lines.append(line.rstrip())
-                        # Save last pattern
-                        if current_name:
-                            description = "\n".join(desc_lines).strip()
-                            self.log_system_pattern(name=current_name, description=description)
-        # Import custom data from JSON
-        for root, _, files in os.walk(os.path.join(mb_path, "context")):
-            for filename in files:
-                if filename.endswith(".json"):
-                    full = os.path.join(root, filename)
-                    with open(full, "r", encoding="utf-8") as f:
-                        try:
-                            data = json.load(f)
-                        except (json.JSONDecodeError, OSError) as exc:
-                            logging.warning("Error processing %s: %s", filename, exc)
-                            continue
-                        category = os.path.splitext(filename)[0]
-                        for key, value in data.items():
-                            self.log_custom_data(category=category, key=key, value=value)
-
-    def sync_to_memory_bank(self, memory_bank_dir: str) -> None:
-        """Export database entries back into a SPARC12 memory bank structure.
-
-        This method writes decisions, progress and system patterns into
-        markdown files under the given memory_bank_dir.  Existing files
-        will be overwritten.  Custom data is saved as JSON files.
-        """
-        mb_path = os.path.abspath(memory_bank_dir)
-        os.makedirs(mb_path, exist_ok=True)
-        # Write decisions
-        ctx_dir = os.path.join(mb_path, "context")
-        os.makedirs(ctx_dir, exist_ok=True)
-        decisions = self.get_decisions()
-        if decisions:
-            dec_file = os.path.join(ctx_dir, "imported-decisions.md")
-            with open(dec_file, "w", encoding="utf-8") as f:
-                f.write("# Imported Decisions\n\n")
-                for dec in decisions:
-                    tags = f" ({dec['tags']})" if dec.get("tags") else ""
-                    f.write(f"- {dec['summary']}; {dec['rationale']}{tags}\n")
-        # Write progress
-        phases_dir = os.path.join(mb_path, "phases")
-        os.makedirs(phases_dir, exist_ok=True)
-        prog = self.get_progress()
-        if prog:
-            prog_file = os.path.join(phases_dir, "imported-status.md")
-            with open(prog_file, "w", encoding="utf-8") as f:
-                f.write("# Imported Progress\n\n")
-                for pr in prog:
-                    f.write(f"- [{pr['status']}] {pr['description']}\n")
-        # Write system patterns
-        patterns = self.get_system_patterns()
-        if patterns:
-            pat_file = os.path.join(ctx_dir, "imported-patterns.md")
-            with open(pat_file, "w", encoding="utf-8") as f:
-                for pat in patterns:
-                    f.write(f"## {pat['name']}\n{pat['description']}\n\n")
-        # Write custom data as JSON
-        c = self._conn.cursor()
-        rows = c.execute("SELECT category, key, value FROM custom_data").fetchall()
-        custom_map: Dict[str, Dict[str, Any]] = {}
-        for row in rows:
-            cat = row["category"]
-            key = row["key"]
-            value = json.loads(row["value"])
-            custom_map.setdefault(cat, {})[key] = value
-        for category, data in custom_map.items():
-            out_file = os.path.join(ctx_dir, f"{category}.json")
-            with open(out_file, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2)
+    def sync_to_memory_bank(self, memory_bank_dir: Union[str, Path]) -> None:
+        """Export database entries into a validated memory bank directory."""
+        try:
+            mb_path = self._resolve_memory_bank_path(memory_bank_dir, must_exist=False)
+            mb_path.mkdir(parents=True, exist_ok=True)
+            # Write decisions
+            ctx_dir = mb_path / "context"
+            ctx_dir.mkdir(parents=True, exist_ok=True)
+            decisions = self.get_decisions()
+            if decisions:
+                dec_file = ctx_dir / "imported-decisions.md"
+                with dec_file.open("w", encoding="utf-8") as f:
+                    f.write("# Imported Decisions\n\n")
+                    for dec in decisions:
+                        tags = f" ({dec['tags']})" if dec.get("tags") else ""
+                        f.write(f"- {dec['summary']}; {dec['rationale']}{tags}\n")
+            # Write progress
+            phases_dir = mb_path / "phases"
+            phases_dir.mkdir(parents=True, exist_ok=True)
+            prog = self.get_progress()
+            if prog:
+                prog_file = phases_dir / "imported-status.md"
+                with prog_file.open("w", encoding="utf-8") as f:
+                    f.write("# Imported Progress\n\n")
+                    for pr in prog:
+                        f.write(f"- [{pr['status']}] {pr['description']}\n")
+            # Write system patterns
+            patterns = self.get_system_patterns()
+            if patterns:
+                pat_file = ctx_dir / "imported-patterns.md"
+                with pat_file.open("w", encoding="utf-8") as f:
+                    for pat in patterns:
+                        f.write(f"## {pat['name']}\n{pat['description']}\n\n")
+            # Write custom data as JSON
+            c = self._conn.cursor()
+            rows = c.execute("SELECT category, key, value FROM custom_data").fetchall()
+            custom_map: Dict[str, Dict[str, Any]] = {}
+            for row in rows:
+                cat = row["category"]
+                key = row["key"]
+                value = json.loads(row["value"])
+                custom_map.setdefault(cat, {})[key] = value
+            for category, data in custom_map.items():
+                out_file = ctx_dir / f"{category}.json"
+                with out_file.open("w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2)
+        except MemoryBankSyncError:
+            raise
+        except Exception as exc:
+            raise MemoryBankSyncError(
+                f"Failed to sync to memory bank: {exc}"
+            ) from exc
 
 
 if __name__ == "__main__":

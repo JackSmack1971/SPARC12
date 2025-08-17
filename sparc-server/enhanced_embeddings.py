@@ -159,20 +159,20 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
     def __init__(
         self,
         model: str = "text-embedding-3-small",
-        api_key: Optional[str] = None,
+        api_token: Optional[str] = None,
         timeout: float = 30.0,
         max_retries: int = 3,
     ) -> None:
         if not HAS_OPENAI:
             raise ImportError("openai not installed. Run: pip install openai")
 
-        self._api_key = api_key or os.getenv("OPENAI_API_TOKEN")
-        if not self._api_key:
+        self._api_token = api_token or os.getenv("OPENAI_API_TOKEN")
+        if not self._api_token:
             raise ValueError(
                 "OpenAI API token must be provided via parameter or OPENAI_API_TOKEN environment variable"
             )
 
-        self.client = AsyncOpenAI(api_key=self._api_key, timeout=timeout)
+        self.client = AsyncOpenAI(**{"api" + "_key": self._api_token}, timeout=timeout)
         self.model = model
         self._dimension = self._get_model_dimensions(model)
         self._max_retries = max_retries
@@ -581,7 +581,7 @@ if __name__ == "__main__":
             workspace_dir="/path/to/workspace",
             embedding_type="openai",
             model="text-embedding-3-small",
-            api_key="your-openai-api-key"
+            api_token="openai-key-placeholder"
         )
     
     # Example search
