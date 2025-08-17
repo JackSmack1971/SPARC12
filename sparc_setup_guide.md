@@ -159,7 +159,7 @@ server = EnhancedContextPortalSPARCServer(
 server = EnhancedContextPortalSPARCServer(
     workspace_dir=workspace_path,
     embedding_type="openai",
-    api_key="your-openai-key"
+    api_token="your-openai-key"
 )
 ```
 

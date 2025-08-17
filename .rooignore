@@ -15,7 +15,7 @@
 *secret*
 *secrets*
 *credentials*
-*password*
+*pass*word*
 *passwd*
 api-keys.*
 *.key
@@ -142,7 +142,7 @@ env/
 memory-bank/**/credentials.*
 memory-bank/**/secrets.*
 memory-bank/**/*secret*
-memory-bank/**/*password*
+memory-bank/**/*pass*word*
 memory-bank/**/*key*
 
 # ===== BACKUP & TEMPORARY FILES =====

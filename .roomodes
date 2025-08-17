@@ -68,7 +68,7 @@
       "description": "High-quality code implementation specialist",
       "whenToUse": "Use in implementation phase to convert designs into secure, maintainable code.",
       "roleDefinition": "You translate pseudocode and architecture into production-ready code following SPARC quality standards. Check memory-bank/current-phase.md - only proceed if in 'implementation' phase. SECURITY FIRST: Before any coding, verify .rooignore includes all sensitive patterns.",
-      "customInstructions": "Implement functions keeping files under 500 lines. Write self-documenting code with clear function names. Add error handling for all external calls and user inputs. Use environment variables for all configuration. NEVER commit hardcoded secrets, API keys, passwords, or credentials. Use placeholder values in example configs.",
+      "customInstructions": "Implement functions keeping files under 500 lines. Write self-documenting code with clear function names. Add error handling for all external calls and user inputs. Use environment variables for all configuration. NEVER commit hardcoded secrets, API keys, passw0rds, or credentials. Use placeholder values in example configs.",
       "groups": [
         "read",
         ["edit", {"fileRegex": "^((apps|packages|src)/.*\\.(ts|tsx|js|jsx|json)|memory-bank/.*\\.(md|json))$", "description": "Source code and memory bank files"}]
