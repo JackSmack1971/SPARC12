@@ -358,12 +358,13 @@ class ContextPortalSPARCServer:
             query_parts.append("WHERE " + " AND ".join(conditions))
 
         query_parts.append("ORDER BY id DESC")
-
         if limit is not None:
-            if not isinstance(limit, int) or limit <= 0:
-                raise QueryBuilderError("limit must be a positive integer")
-            query_parts.append(f"LIMIT {limit}")
-
+            if not isinstance(limit, int):
+                raise QueryBuilderError("limit must be an integer")
+            if limit < 0:
+                raise QueryBuilderError("limit must be non-negative")
+            query_parts.append("LIMIT ?")
+            params.append(limit)
         return " ".join(query_parts), params
 
     def get_decisions(
@@ -437,8 +438,13 @@ class ContextPortalSPARCServer:
         if conditions:
             query += " WHERE " + " AND ".join(conditions)
         query += " ORDER BY id DESC"
-        if limit:
-            query += f" LIMIT {int(limit)}"
+        if limit is not None:
+            if not isinstance(limit, int):
+                raise ValueError("limit must be an integer or None")
+            if limit < 0:
+                raise ValueError("limit cannot be negative")
+            query += " LIMIT ?"
+            params.append(limit)
         rows = c.execute(query, params).fetchall()
         return [dict(row) for row in rows]
 
@@ -503,8 +509,13 @@ class ContextPortalSPARCServer:
         if conditions:
             query += " WHERE " + " AND ".join(conditions)
         query += " ORDER BY id DESC"
-        if limit:
-            query += f" LIMIT {int(limit)}"
+        if limit is not None:
+            if not isinstance(limit, int):
+                raise ValueError("limit must be an integer or None")
+            if limit < 0:
+                raise ValueError("limit cannot be negative")
+            query += " LIMIT ?"
+            params.append(limit)
         rows = c.execute(query, params).fetchall()
         return [dict(row) for row in rows]
 
